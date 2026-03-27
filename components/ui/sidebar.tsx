@@ -1,13 +1,14 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import Link from "next/link";
-import { useSearchParams, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/ui/auth-provider";
 import { Home, PlusCircle, BookOpen, Trophy, LogOut, User, Layers, Database, RotateCcw, ShieldCheck, X, Settings } from "lucide-react";
 
 const navItems = [
   { href: "/landing-page", label: "Hjem", icon: Home },
   { href: "/opret-kort", label: "Opret kort", icon: PlusCircle },
-  { href: "/oev-dig", label: "Øv dig", icon: BookOpen },
+  { href: "/oev-dig", label: "Ã˜v dig", icon: BookOpen },
   { href: "/mine-kort", label: "Mine kort", icon: Layers },
   { href: "/bibliotek", label: "Bibliotek", icon: Database },
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
@@ -15,18 +16,15 @@ const navItems = [
 
 const mobileNavItems = [
   { href: "/landing-page", label: "Hjem", icon: Home },
-  { href: "/oev-dig", label: "Øv dig", icon: BookOpen },
+  { href: "/oev-dig", label: "Ã˜v dig", icon: BookOpen },
   { href: "/bibliotek", label: "Bibliotek", icon: Database },
   { href: "/mine-kort", label: "Mine kort", icon: Layers },
 ];
 
 export function Sidebar() {
-  const searchParams = useSearchParams();
   const pathname = usePathname();
-  const bruger = searchParams.get("bruger") || "Bruger";
+  const { bruger, rolle, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
-
-  const buildHref = (base: string) => `${base}?bruger=${encodeURIComponent(bruger)}`;
 
   return (
     <>
@@ -48,7 +46,7 @@ export function Sidebar() {
               return (
                 <Link
                   key={item.href}
-                  href={buildHref(item.href)}
+                  href={item.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-[1.02] ${
                     isActive
                       ? "bg-blue-600/20 text-blue-400 shadow-lg shadow-blue-500/10"
@@ -60,9 +58,9 @@ export function Sidebar() {
                 </Link>
               );
             })}
-            {bruger === "admin" && (
+            {rolle === "admin" && (
               <Link
-                href={buildHref("/admin")}
+                href={"/admin"}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-[1.02] ${
                   pathname === "/admin"
                     ? "bg-blue-600/20 text-blue-400 shadow-lg shadow-blue-500/10"
@@ -80,7 +78,7 @@ export function Sidebar() {
         <div className="px-3 pb-6 space-y-2">
           <button
             onClick={() => {
-              if (confirm("Er du sikker? Dette nulstiller al din læringsfremdrift.")) {
+              if (confirm("Er du sikker? Dette nulstiller al din lÃ¦ringsfremdrift.")) {
                 localStorage.removeItem("anki_progress");
                 window.location.reload();
               }
@@ -99,13 +97,13 @@ export function Sidebar() {
               <p className="text-xs text-gray-500">Online</p>
             </div>
           </div>
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 hover:scale-[1.02]"
+          <button
+            onClick={logout}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 hover:scale-[1.02] w-full"
           >
             <LogOut className="w-5 h-5" />
             Log ud
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -117,7 +115,7 @@ export function Sidebar() {
             return (
               <Link
                 key={item.href}
-                href={buildHref(item.href)}
+                href={item.href}
                 className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl min-w-[3.5rem] transition-all duration-200 ${
                   isActive
                     ? "text-blue-400"
@@ -170,7 +168,7 @@ export function Sidebar() {
             {/* Profile actions */}
             <div className="space-y-1">
               <Link
-                href={buildHref("/opret-kort")}
+                href={"/opret-kort"}
                 onClick={() => setProfileOpen(false)}
                 className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all"
               >
@@ -178,16 +176,16 @@ export function Sidebar() {
                 Opret kort
               </Link>
               <Link
-                href={buildHref("/leaderboard")}
+                href={"/leaderboard"}
                 onClick={() => setProfileOpen(false)}
                 className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all"
               >
                 <Trophy className="w-5 h-5 text-amber-400" />
                 Leaderboard
               </Link>
-              {bruger === "admin" && (
+              {rolle === "admin" && (
                 <Link
-                  href={buildHref("/admin")}
+                  href={"/admin"}
                   onClick={() => setProfileOpen(false)}
                   className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-amber-400/80 hover:text-amber-400 hover:bg-amber-500/10 transition-all"
                 >
@@ -197,7 +195,7 @@ export function Sidebar() {
               )}
               <button
                 onClick={() => {
-                  if (confirm("Er du sikker? Dette nulstiller al din læringsfremdrift.")) {
+                  if (confirm("Er du sikker? Dette nulstiller al din lÃ¦ringsfremdrift.")) {
                     localStorage.removeItem("anki_progress");
                     window.location.reload();
                   }
@@ -207,13 +205,13 @@ export function Sidebar() {
                 <RotateCcw className="w-5 h-5" />
                 Nulstil fremgang
               </button>
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-red-400/80 hover:text-red-400 hover:bg-red-500/10 transition-all"
+              <button
+                onClick={logout}
+                className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-red-400/80 hover:text-red-400 hover:bg-red-500/10 transition-all w-full"
               >
                 <LogOut className="w-5 h-5" />
                 Log ud
-              </Link>
+              </button>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { PWAProvider } from "@/components/ui/pwa-provider";
+import { AuthProvider } from "@/components/ui/auth-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -45,7 +46,9 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
       </head>
       <body className="min-h-full flex flex-col">
-        <PWAProvider>{children}</PWAProvider>
+        <PWAProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </PWAProvider>
       </body>
     </html>
   );

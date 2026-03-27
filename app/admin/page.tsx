@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/components/ui/auth-provider";
 import {
   ShieldCheck, AlertTriangle, BadgeCheck, Image, Brain, Users,
   Megaphone, Loader2, Check, X, Save, Eye, Pencil,
@@ -39,13 +40,12 @@ interface BlindSpotItem {
 type Tab = "fejl" | "verificer" | "billeder" | "blindspot" | "aktivitet" | "broadcast";
 
 function AdminContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const bruger = searchParams.get("bruger") || "";
+  const { bruger, rolle } = useAuth();
 
-  // Redirect non-admin users
+  // Redirect non-admin users (middleware also enforces this)
   useEffect(() => {
-    if (bruger !== "admin") {
+    if (rolle !== "admin") {
       router.replace("/landing-page");
     }
   }, [bruger, router]);
@@ -75,7 +75,7 @@ function AdminContent() {
   const [verifying, setVerifying] = useState<number | null>(null);
 
   useEffect(() => {
-    if (bruger !== "admin") return;
+    if (rolle !== "admin") return;
     const fetchAll = async () => {
       setLoading(true);
       try {
@@ -146,7 +146,7 @@ function AdminContent() {
     setBroadcastSaving(false);
   };
 
-  if (bruger !== "admin") return null;
+  if (rolle !== "admin") return null;
 
   const tabs: { id: Tab; label: string; icon: typeof ShieldCheck; count?: number }[] = [
     { id: "fejl", label: "Fejl-logg", icon: AlertTriangle, count: errorCards.length },

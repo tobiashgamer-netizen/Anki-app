@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/components/ui/auth-provider";
 import {
   Layers, ChevronDown, ChevronRight, Pencil, Trash2, X, Check,
   Loader2, Globe, Lock, Scale, Briefcase, Shield, FolderOpen, User, BookOpen, Database,
@@ -35,8 +36,7 @@ const katColors: Record<string, string> = {
 };
 
 function MineKortContent() {
-  const searchParams = useSearchParams();
-  const bruger = searchParams.get("bruger") || "Bruger";
+  const { bruger } = useAuth();
   const router = useRouter();
 
   const [alleKort, setAlleKort] = useState<Flashcard[]>([]);
@@ -193,7 +193,7 @@ function MineKortContent() {
               <p className="text-gray-400 mb-2">Du har ingen kort endnu</p>
               <p className="text-sm text-gray-500 mb-5">Find et deck i Biblioteket for at komme i gang!</p>
               <button
-                onClick={() => router.push(`/bibliotek?bruger=${encodeURIComponent(bruger)}`)}
+                onClick={() => router.push(`/bibliotek`)}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-semibold transition"
               >
                 <Database className="w-4 h-4" />
@@ -220,7 +220,7 @@ function MineKortContent() {
                         {erAaben ? <ChevronDown className="w-5 h-5 text-gray-400" /> : <ChevronRight className="w-5 h-5 text-gray-400" />}
                       </button>
                       <button
-                        onClick={() => router.push(`/oev-dig?bruger=${encodeURIComponent(bruger)}&deck=${encodeURIComponent(deckName)}&owner=${encodeURIComponent(bruger)}`)}
+                        onClick={() => router.push(`/oev-dig?deck=${encodeURIComponent(deckName)}&owner=${encodeURIComponent(bruger)}`)}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-sm font-semibold transition-all flex-shrink-0"
                       >
                         <BookOpen className="w-4 h-4" />

@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/components/ui/auth-provider";
 import {
   Database, Search, Scale, Briefcase, Shield, FolderOpen, Loader2,
   User, Heart, Copy, Layers, ChevronDown, ChevronRight, X, BookOpen,
@@ -47,9 +48,8 @@ const defaultMeta = { icon: FolderOpen, color: "from-gray-500 to-gray-700", badg
 function getMeta(cat: string) { return kategoriMeta[cat.toLowerCase()] || defaultMeta; }
 
 function BibliotekContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const bruger = searchParams.get("bruger") || "Bruger";
+  const { bruger } = useAuth();
 
   const [alleKort, setAlleKort] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -167,7 +167,7 @@ function BibliotekContent() {
   };
 
   const startPractice = (deck: Deck) => {
-    router.push(`/oev-dig?bruger=${encodeURIComponent(bruger)}&deck=${encodeURIComponent(deck.deckname)}&owner=${encodeURIComponent(deck.owner)}`);
+    router.push(`/oev-dig?deck=${encodeURIComponent(deck.deckname)}&owner=${encodeURIComponent(deck.owner)}`);
   };
 
   function DeckCard({ deck, official }: { deck: Deck; official?: boolean }) {

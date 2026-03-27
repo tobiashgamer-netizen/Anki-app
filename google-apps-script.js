@@ -3,13 +3,18 @@
 //
 // Google Sheet "Kort" kolonner:
 // A=date, B=question, C=imageURL, D=answer, E=category, F=owner, G=public, H=likes, I=deckname, J=verified
+//
+// Google Sheet "Brugere" (Users) kolonner:
+// A=username, B=hashedPassword, C=role, D=createdAt
 
 const SHEET_NAME = "Kort";
+const USERS_SHEET = "Brugere";
 
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || "getCards";
 
   if (action === "getCards") return getCards(e.parameter);
+  if (action === "getUser") return getUser(e.parameter);
   if (action === "getBroadcast") return getBroadcast();
   if (action === "getActivity") return getActivity();
   if (action === "getBlindSpot") return getBlindSpot();
@@ -34,6 +39,7 @@ function doPost(e) {
     if (action === "saveBroadcast") return saveBroadcast(data);
     if (action === "logActivity") return logActivity(data);
     if (action === "logAnalytics") return logAnalytics(data);
+    if (action === "registerUser") return registerUser(data);
 
     // Default: addCard
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
@@ -487,5 +493,76 @@ function getBlindSpot() {
 
   return ContentService
     .createTextOutput(JSON.stringify(sorted))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ===== USER AUTHENTICATION =====
+
+function getOrCreateUsersSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(USERS_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(USERS_SHEET);
+    sheet.appendRow(["username", "hashedPassword", "role", "createdAt"]);
+  }
+  return sheet;
+}
+
+function getUser(params) {
+  var username = params && params.username ? String(params.username).trim() : "";
+  if (!username) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ error: "No username provided" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var sheet = getOrCreateUsersSheet();
+  var data = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]).toLowerCase() === username.toLowerCase()) {
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          username: String(data[i][0]),
+          hashedPassword: String(data[i][1]),
+          role: String(data[i][2]) || "bruger"
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  // User not found
+  return ContentService
+    .createTextOutput(JSON.stringify({}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function registerUser(data) {
+  var username = String(data.username || "").trim();
+  var hashedPassword = String(data.hashedPassword || "");
+  var role = String(data.role || "bruger");
+
+  if (!username || !hashedPassword) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: "Missing fields" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var sheet = getOrCreateUsersSheet();
+  var existing = sheet.getDataRange().getValues();
+
+  // Check for duplicate username
+  for (var i = 1; i < existing.length; i++) {
+    if (String(existing[i][0]).toLowerCase() === username.toLowerCase()) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ success: false, error: "Username taken" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  sheet.appendRow([username, hashedPassword, role, new Date()]);
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ success: true }))
     .setMimeType(ContentService.MimeType.JSON);
 }

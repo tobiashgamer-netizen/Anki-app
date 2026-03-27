@@ -1,6 +1,6 @@
 "use client";
-import { useSearchParams } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/components/ui/auth-provider";
 import { Trophy, Medal, Crown, Star, TrendingUp, Flame } from "lucide-react";
 import { Suspense } from "react";
 
@@ -52,8 +52,7 @@ function getRankBg(rank: number) {
 }
 
 function LeaderboardContent() {
-  const searchParams = useSearchParams();
-  const bruger = searchParams.get("bruger") || "Bruger";
+  const { bruger } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">

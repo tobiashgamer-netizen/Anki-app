@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/components/ui/auth-provider";
 import { BookOpen, Eye, RotateCcw, Brain, ChevronRight, Scale, Briefcase, Shield, FolderOpen, Loader2, ArrowLeft, Layers, Flag, X, Star, BadgeCheck } from "lucide-react";
 import { Suspense } from "react";
 import { hentAlleKort, rapporterFejl, logAnalytics } from "@/app/dashboard/actions";
@@ -88,9 +89,9 @@ function getStrengthIndicator(cardId: string): { dots: number; color: string } {
 }
 
 function OevDigContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const bruger = searchParams.get("bruger") || "Bruger";
+  const { bruger } = useAuth();
+  const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
   const deckParam = searchParams.get("deck");
   const ownerParam = searchParams.get("owner");
 
@@ -366,7 +367,7 @@ function OevDigContent() {
               <div className="flex items-center gap-3 mb-6">
                 {deckMode ? (
                   <button
-                    onClick={() => router.push(`/mine-kort?bruger=${encodeURIComponent(bruger)}`)}
+                    onClick={() => router.push(`/mine-kort`)}
                     className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
                   >
                     <ArrowLeft className="w-4 h-4" />
@@ -409,7 +410,7 @@ function OevDigContent() {
                     <>
                       <p className="text-gray-400 mb-2">Dette deck er tomt. Tilføj kort før du kan øve.</p>
                       <button
-                        onClick={() => router.push(`/mine-kort?bruger=${encodeURIComponent(bruger)}`)}
+                        onClick={() => router.push(`/mine-kort`)}
                         className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 rounded-xl font-semibold transition text-sm"
                       >
                         <ArrowLeft className="w-4 h-4" />
@@ -472,7 +473,7 @@ function OevDigContent() {
                         </button>
                         {deckMode ? (
                           <button
-                            onClick={() => router.push(`/mine-kort?bruger=${encodeURIComponent(bruger)}`)}
+                            onClick={() => router.push(`/mine-kort`)}
                             className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl font-semibold transition-all duration-200"
                           >
                             <ArrowLeft className="w-5 h-5" />

@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/components/ui/auth-provider";
 import {
   BookOpen, PlusCircle, Trophy, Zap, Layers, Loader2,
   Search, X, Eye, Database, Sparkles, Brain, Megaphone, BadgeCheck,
@@ -25,10 +26,8 @@ interface Flashcard {
 const OFFICIAL_OWNERS = ["admin", "officiel"];
 
 function DashboardContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const bruger = searchParams.get("bruger") || "Bruger";
-  const buildHref = (base: string) => `${base}?bruger=${encodeURIComponent(bruger)}`;
+  const { bruger } = useAuth();
 
   const [alleKort, setAlleKort] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,9 +107,9 @@ function DashboardContent() {
   ];
 
   const quickActions = [
-    { label: "Opret nyt kort", description: "Tilføj et flashcard til din samling", href: buildHref("/opret-kort"), icon: PlusCircle, color: "bg-blue-600 hover:bg-blue-700" },
-    { label: "Øv dig nu", description: "Start en øvesession med dine kort", href: buildHref("/oev-dig"), icon: BookOpen, color: "bg-purple-600 hover:bg-purple-700" },
-    { label: "Se leaderboard", description: "Hvem har lavet flest kort?", href: buildHref("/leaderboard"), icon: Trophy, color: "bg-emerald-600 hover:bg-emerald-700" },
+    { label: "Opret nyt kort", description: "Tilføj et flashcard til din samling", href: "/opret-kort", icon: PlusCircle, color: "bg-blue-600 hover:bg-blue-700" },
+    { label: "Øv dig nu", description: "Start en øvesession med dine kort", href: "/oev-dig", icon: BookOpen, color: "bg-purple-600 hover:bg-purple-700" },
+    { label: "Se leaderboard", description: "Hvem har lavet flest kort?", href: "/leaderboard", icon: Trophy, color: "bg-emerald-600 hover:bg-emerald-700" },
   ];
 
   return (
@@ -297,7 +296,7 @@ function DashboardContent() {
                 <button
                   onClick={() => {
                     setPreviewKort(null);
-                    router.push(`/oev-dig?bruger=${encodeURIComponent(bruger)}&deck=${encodeURIComponent(previewKort.deckname)}&owner=${encodeURIComponent(previewKort.user)}`);
+                    router.push(`/oev-dig?deck=${encodeURIComponent(previewKort.deckname)}&owner=${encodeURIComponent(previewKort.user)}`);
                   }}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-sm font-semibold transition"
                 >

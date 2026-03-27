@@ -1,14 +1,13 @@
 "use client";
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/components/ui/auth-provider";
 import { PlusCircle, Sparkles, Check, RotateCcw, Globe, Lock, Layers } from "lucide-react";
 import { Suspense } from "react";
 import { opretKort } from "@/app/dashboard/actions";
 
 function OpretKortContent() {
-  const searchParams = useSearchParams();
-  const bruger = searchParams.get("bruger") || "Bruger";
+  const { bruger } = useAuth();
 
   const [spoergsmaal, setSpoergsmaal] = useState("");
   const [svar, setSvar] = useState("");
