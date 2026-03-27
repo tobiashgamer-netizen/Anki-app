@@ -102,3 +102,39 @@ export async function hentLeaderboard() {
     return { success: false, leaderboard: [] };
   }
 }
+
+export async function kopierDeck(data: {
+  deckname: string;
+  sourceOwner: string;
+  user: string;
+  newDeckname?: string;
+}) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'copyDeck', ...data }),
+      redirect: 'follow',
+    });
+    const result = await res.json();
+    return result;
+  } catch {
+    return { success: false, error: "Netværksfejl" };
+  }
+}
+
+export async function likeDeck(data: {
+  deckname: string;
+  deckOwner: string;
+}) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'likeDeck', ...data }),
+      redirect: 'follow',
+    });
+    const result = await res.json();
+    return result;
+  } catch {
+    return { success: false, error: "Netværksfejl" };
+  }
+}

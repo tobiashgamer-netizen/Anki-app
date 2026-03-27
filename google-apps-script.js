@@ -23,12 +23,10 @@ function doPost(e) {
     var data = JSON.parse(e.postData.contents);
     var action = data.action || "addCard";
 
-    if (action === "editCard") {
-      return editCard(data);
-    }
-    if (action === "deleteCard") {
-      return deleteCard(data);
-    }
+    if (action === "editCard") return editCard(data);
+    if (action === "deleteCard") return deleteCard(data);
+    if (action === "copyDeck") return copyDeck(data);
+    if (action === "likeDeck") return likeDeck(data);
 
     // Default: addCard
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
@@ -114,7 +112,6 @@ function editCard(data) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
-  // Verify ownership
   var currentOwner = sheet.getRange(rowNum, 5).getValue();
   if (data.user && currentOwner !== data.user) {
     return ContentService
@@ -159,5 +156,90 @@ function deleteCard(data) {
 
   return ContentService
     .createTextOutput(JSON.stringify({ success: true }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// Copy an entire deck: duplicate all cards from deckname+owner to a new user as private
+function copyDeck(data) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  if (!sheet) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: "Sheet not found" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var sourceDeck = data.deckname;
+  var sourceOwner = data.sourceOwner;
+  var newOwner = data.user;
+  var newDeckname = data.newDeckname || sourceDeck;
+
+  if (!sourceDeck || !sourceOwner || !newOwner) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: "Missing parameters" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var allData = sheet.getDataRange().getValues();
+  var copied = 0;
+  var now = new Date();
+
+  for (var i = 1; i < allData.length; i++) {
+    var row = allData[i];
+    var rowDeck = String(row[7] || "");
+    var rowOwner = String(row[4] || "");
+
+    if (rowDeck === sourceDeck && rowOwner === sourceOwner) {
+      sheet.appendRow([
+        now,
+        row[1] || "",   // question
+        row[2] || "",   // answer
+        row[3] || "Andet", // category
+        newOwner,        // new owner
+        "false",         // private by default
+        0,               // likes reset
+        newDeckname      // deck name
+      ]);
+      copied++;
+    }
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ success: true, copied: copied }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// Like a deck: increment likes on all cards in the deck
+function likeDeck(data) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  if (!sheet) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: "Sheet not found" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var deckname = data.deckname;
+  var deckOwner = data.deckOwner;
+
+  if (!deckname || !deckOwner) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: "Missing parameters" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var allData = sheet.getDataRange().getValues();
+  var updated = 0;
+
+  for (var i = 1; i < allData.length; i++) {
+    var row = allData[i];
+    if (String(row[7] || "") === deckname && String(row[4] || "") === deckOwner) {
+      var currentLikes = Number(row[6]) || 0;
+      sheet.getRange(i + 1, 7).setValue(currentLikes + 1);
+      updated++;
+      break; // Only increment first row of deck (represents deck likes)
+    }
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ success: true, updated: updated }))
     .setMimeType(ContentService.MimeType.JSON);
 }
