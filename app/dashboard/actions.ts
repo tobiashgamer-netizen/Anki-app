@@ -24,6 +24,26 @@ export async function genererAnkiKort(spoergsmaal: string, svar: string, brugern
   }
 }
 
+export async function opretKort(data: {
+  question: string;
+  answer: string;
+  category: string;
+  user: string;
+  public: boolean;
+  deckname: string;
+}) {
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      redirect: 'follow',
+    });
+    return { success: true };
+  } catch {
+    return { success: false };
+  }
+}
+
 export async function hentAlleKort(brugernavn?: string) {
   try {
     const url = brugernavn
@@ -34,6 +54,42 @@ export async function hentAlleKort(brugernavn?: string) {
     return { success: true, kort: data };
   } catch (e) {
     return { success: false, kort: [] };
+  }
+}
+
+export async function redigerKort(data: {
+  row: number;
+  question?: string;
+  answer?: string;
+  category?: string;
+  public?: boolean;
+  deckname?: string;
+  user: string;
+}) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'editCard', ...data }),
+      redirect: 'follow',
+    });
+    const result = await res.json();
+    return result;
+  } catch {
+    return { success: false, error: "Netværksfejl" };
+  }
+}
+
+export async function sletKort(row: number, user: string) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'deleteCard', row, user }),
+      redirect: 'follow',
+    });
+    const result = await res.json();
+    return result;
+  } catch {
+    return { success: false, error: "Netværksfejl" };
   }
 }
 

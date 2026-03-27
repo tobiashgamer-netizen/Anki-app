@@ -2,8 +2,9 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
-import { PlusCircle, Sparkles, Check, RotateCcw } from "lucide-react";
+import { PlusCircle, Sparkles, Check, RotateCcw, Globe, Lock, Layers } from "lucide-react";
 import { Suspense } from "react";
+import { opretKort } from "@/app/dashboard/actions";
 
 function OpretKortContent() {
   const searchParams = useSearchParams();
@@ -12,6 +13,8 @@ function OpretKortContent() {
   const [spoergsmaal, setSpoergsmaal] = useState("");
   const [svar, setSvar] = useState("");
   const [kategori, setKategori] = useState("Jura");
+  const [deckname, setDeckname] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [besked, setBesked] = useState("");
   const [kortTaeller, setKortTaeller] = useState(0);
@@ -22,31 +25,30 @@ function OpretKortContent() {
 
     setStatus("loading");
     try {
-      const scriptUrl = process.env.NEXT_PUBLIC_SCRIPT_URL;
-      if (!scriptUrl) throw new Error("Script URL not configured");
-
-      await fetch(scriptUrl, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: spoergsmaal,
-          answer: svar,
-          category: kategori,
-        }),
+      const result = await opretKort({
+        question: spoergsmaal,
+        answer: svar,
+        category: kategori,
+        user: bruger,
+        public: isPublic,
+        deckname: deckname.trim(),
       });
 
-      setStatus("success");
-      setBesked("Kortet er gemt!");
-      setKortTaeller((prev) => prev + 1);
-      alert("Kortet er gemt i dit spreadsheet!");
-      setTimeout(() => {
-        setSpoergsmaal("");
-        setSvar("");
-        setKategori("Jura");
-        setStatus("idle");
-        setBesked("");
-      }, 2000);
+      if (result.success) {
+        setStatus("success");
+        setBesked("Kortet er gemt!");
+        setKortTaeller((prev) => prev + 1);
+        setTimeout(() => {
+          setSpoergsmaal("");
+          setSvar("");
+          setKategori("Jura");
+          setStatus("idle");
+          setBesked("");
+        }, 2000);
+      } else {
+        setStatus("error");
+        setBesked("Kunne ikke gemme kortet. Prøv igen.");
+      }
     } catch {
       setStatus("error");
       setBesked("Kunne ikke gemme kortet. Prøv igen.");
@@ -57,6 +59,8 @@ function OpretKortContent() {
     setSpoergsmaal("");
     setSvar("");
     setKategori("Jura");
+    setDeckname("");
+    setIsPublic(true);
     setStatus("idle");
     setBesked("");
   };
@@ -103,6 +107,52 @@ function OpretKortContent() {
                     {kat}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Deck name */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-300 flex items-center gap-2">
+                <Layers className="w-4 h-4" />
+                Deck navn
+              </label>
+              <input
+                type="text"
+                value={deckname}
+                onChange={(e) => setDeckname(e.target.value)}
+                placeholder={`f.eks. ${bruger}s Jura Deck`}
+                className="w-full rounded-xl bg-white/5 border border-white/10 px-5 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200 text-sm"
+              />
+            </div>
+
+            {/* Privacy toggle */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-300">Synlighed</label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsPublic(true)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 border ${
+                    isPublic
+                      ? "bg-emerald-600/20 border-emerald-500/40 text-emerald-300"
+                      : "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  <Globe className="w-4 h-4" />
+                  Offentlig
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsPublic(false)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 border ${
+                    !isPublic
+                      ? "bg-amber-600/20 border-amber-500/40 text-amber-300"
+                      : "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  <Lock className="w-4 h-4" />
+                  Privat
+                </button>
               </div>
             </div>
 

@@ -1,12 +1,14 @@
 "use client";
 import Link from "next/link";
 import { useSearchParams, usePathname } from "next/navigation";
-import { Home, PlusCircle, BookOpen, Trophy, Settings, LogOut, User } from "lucide-react";
+import { Home, PlusCircle, BookOpen, Trophy, Settings, LogOut, User, Layers, Database } from "lucide-react";
 
 const navItems = [
   { href: "/landing-page", label: "Hjem", icon: Home },
   { href: "/opret-kort", label: "Opret kort", icon: PlusCircle },
+  { href: "/mine-kort", label: "Mine kort", icon: Layers },
   { href: "/oev-dig", label: "Øv dig", icon: BookOpen },
+  { href: "/oversigt", label: "Oversigt", icon: Database },
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
 ];
 
