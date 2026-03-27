@@ -7,8 +7,7 @@ const navItems = [
   { href: "/landing-page", label: "Hjem", icon: Home },
   { href: "/opret-kort", label: "Opret kort", icon: PlusCircle },
   { href: "/mine-kort", label: "Mine kort", icon: Layers },
-  { href: "/oev-dig", label: "Øv dig", icon: BookOpen },
-  { href: "/oversigt", label: "Oversigt", icon: Database },
+  { href: "/bibliotek", label: "Bibliotek", icon: Database },
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
 ];
 

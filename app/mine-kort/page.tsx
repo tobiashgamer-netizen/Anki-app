@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import {
   Layers, ChevronDown, ChevronRight, Pencil, Trash2, X, Check,
-  Loader2, Globe, Lock, Scale, Briefcase, Shield, FolderOpen, User, BookOpen,
+  Loader2, Globe, Lock, Scale, Briefcase, Shield, FolderOpen, User, BookOpen, Database,
 } from "lucide-react";
 import { Suspense } from "react";
 import { hentAlleKort, redigerKort, sletKort } from "@/app/dashboard/actions";
@@ -186,7 +186,15 @@ function MineKortContent() {
           ) : alleKort.length === 0 ? (
             <div className="rounded-2xl bg-white/5 border border-white/10 p-10 text-center">
               <Layers className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-400">Du har ingen kort endnu. Opret kort under &quot;Opret kort&quot;.</p>
+              <p className="text-gray-400 mb-2">Du har ingen kort endnu</p>
+              <p className="text-sm text-gray-500 mb-5">Find et deck i Biblioteket for at komme i gang!</p>
+              <button
+                onClick={() => router.push(`/bibliotek?bruger=${encodeURIComponent(bruger)}`)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-semibold transition"
+              >
+                <Database className="w-4 h-4" />
+                Gå til Biblioteket
+              </button>
             </div>
           ) : (
             <div className="space-y-4 max-w-4xl">
