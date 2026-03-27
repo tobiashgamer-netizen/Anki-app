@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import { PlusCircle, Sparkles, Check, RotateCcw } from "lucide-react";
-import { genererAnkiKort } from "@/app/dashboard/actions";
 import { Suspense } from "react";
 
 function OpretKortContent() {
@@ -22,24 +21,32 @@ function OpretKortContent() {
 
     setStatus("loading");
     try {
-      const result = await genererAnkiKort(spoergsmaal, svar, bruger);
-      if (result.success) {
-        setStatus("success");
-        setBesked(result.msg);
-        setKortTaeller((prev) => prev + 1);
-        setTimeout(() => {
-          setSpoergsmaal("");
-          setSvar("");
-          setStatus("idle");
-          setBesked("");
-        }, 2000);
-      } else {
-        setStatus("error");
-        setBesked(result.msg);
-      }
+      const scriptUrl = process.env.NEXT_PUBLIC_SCRIPT_URL;
+      if (!scriptUrl) throw new Error("Script URL not configured");
+
+      await fetch(scriptUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: spoergsmaal,
+          answer: svar,
+        }),
+      });
+
+      setStatus("success");
+      setBesked("Kortet er gemt!");
+      setKortTaeller((prev) => prev + 1);
+      alert("Kortet er gemt i dit spreadsheet!");
+      setTimeout(() => {
+        setSpoergsmaal("");
+        setSvar("");
+        setStatus("idle");
+        setBesked("");
+      }, 2000);
     } catch {
       setStatus("error");
-      setBesked("Noget gik galt. Prøv igen.");
+      setBesked("Kunne ikke gemme kortet. Prøv igen.");
     }
   };
 
