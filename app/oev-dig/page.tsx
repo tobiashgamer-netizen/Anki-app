@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import { BookOpen, Eye, RotateCcw, ThumbsUp, ThumbsDown, Brain, ChevronRight, Scale, Briefcase, Shield, FolderOpen, Loader2, ArrowLeft, Layers } from "lucide-react";
 import { Suspense } from "react";
+import { hentAlleKort } from "@/app/dashboard/actions";
 
 interface Flashcard {
   question: string;
@@ -33,24 +34,23 @@ function OevDigContent() {
   const [forkerte, setForkerte] = useState(0);
   const [erFærdig, setErFærdig] = useState(false);
 
-  // Fetch all cards from Google Sheets on mount
+  // Fetch all cards from Google Sheets via server action (avoids CORS)
   useEffect(() => {
-    const hentKort = async () => {
+    const fetchKort = async () => {
       setLoading(true);
       setFejl("");
       try {
-        const scriptUrl = process.env.NEXT_PUBLIC_SCRIPT_URL;
-        if (!scriptUrl) throw new Error("Script URL not configured");
-        const res = await fetch(scriptUrl, { redirect: "follow" });
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setAlleKort(data);
-        } else if (data?.cards && Array.isArray(data.cards)) {
-          setAlleKort(data.cards);
-        } else if (data?.data && Array.isArray(data.data)) {
-          setAlleKort(data.data);
+        const result = await hentAlleKort();
+        if (result.success && Array.isArray(result.kort)) {
+          // Map possible field names from Google Sheet to our interface
+          const mapped: Flashcard[] = result.kort.map((k: Record<string, string>) => ({
+            question: k.question || k.spørgsmål || k.spoergsmaal || k.q || "",
+            answer: k.answer || k.svar || k.a || "",
+            category: k.category || k.kategori || k.cat || "",
+          }));
+          setAlleKort(mapped);
         } else {
-          setAlleKort([]);
+          setFejl("Kunne ikke hente kort fra Google Sheets. Prøv igen.");
         }
       } catch {
         setFejl("Kunne ikke hente kort fra Google Sheets. Prøv igen.");
@@ -58,7 +58,7 @@ function OevDigContent() {
         setLoading(false);
       }
     };
-    hentKort();
+    fetchKort();
   }, []);
 
   const startSession = (kategoriId: string) => {
