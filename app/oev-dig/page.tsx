@@ -1,53 +1,97 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
-import { BookOpen, Eye, RotateCcw, ThumbsUp, ThumbsDown, Brain, ChevronRight } from "lucide-react";
+import { BookOpen, Eye, RotateCcw, ThumbsUp, ThumbsDown, Brain, ChevronRight, Scale, Briefcase, Shield, FolderOpen, Loader2, ArrowLeft, Layers } from "lucide-react";
 import { Suspense } from "react";
 
 interface Flashcard {
-  id: number;
-  q: string;
-  a: string;
+  question: string;
+  answer: string;
+  category?: string;
 }
 
-const demoKort: Flashcard[] = [
-  { id: 1, q: "Hvad er fotosyntese?", a: "Den proces hvor planter omdanner sollys, vand og CO₂ til glukose og ilt." },
-  { id: 2, q: "Hvad er Pythagoras' sætning?", a: "I en retvinklet trekant gælder: a² + b² = c², hvor c er hypotenusen." },
-  { id: 3, q: "Hvad er mitokondriets funktion?", a: "Mitokondrier er cellens 'kraftværk' — de producerer ATP via cellulær respiration." },
-  { id: 4, q: "Hvornår startede 2. Verdenskrig?", a: "1. september 1939, da Tyskland invaderede Polen." },
-  { id: 5, q: "Hvad er Newtons 2. lov?", a: "F = m × a — Kraft er lig masse gange acceleration." },
-  { id: 6, q: "Hvad er DNA?", a: "Deoxyribonukleinsyre — et molekyle der indeholder den genetiske kode for alle levende organismer." },
+const kategorier = [
+  { id: "Jura", label: "Jura", icon: Scale, color: "from-blue-500 to-blue-700", bgHover: "hover:border-blue-500/40" },
+  { id: "Portfolio", label: "Portfolio", icon: Briefcase, color: "from-purple-500 to-purple-700", bgHover: "hover:border-purple-500/40" },
+  { id: "Politifaglig", label: "Politifaglig", icon: Shield, color: "from-emerald-500 to-emerald-700", bgHover: "hover:border-emerald-500/40" },
+  { id: "Andet", label: "Andet", icon: FolderOpen, color: "from-amber-500 to-orange-600", bgHover: "hover:border-amber-500/40" },
 ];
 
 function OevDigContent() {
   const searchParams = useSearchParams();
   const bruger = searchParams.get("bruger") || "Bruger";
 
-  const [kort, setKort] = useState<Flashcard[]>(demoKort);
+  const [valgtKategori, setValgtKategori] = useState<string | null>(null);
+  const [alleKort, setAlleKort] = useState<Flashcard[]>([]);
+  const [kort, setKort] = useState<Flashcard[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [fejl, setFejl] = useState("");
   const [nuværendeIndex, setNuværendeIndex] = useState(0);
   const [visFlip, setVisFlip] = useState(false);
   const [rigtige, setRigtige] = useState(0);
   const [forkerte, setForkerte] = useState(0);
   const [erFærdig, setErFærdig] = useState(false);
 
-  const nuværendeKort = kort[nuværendeIndex];
+  // Fetch all cards from Google Sheets on mount
+  useEffect(() => {
+    const hentKort = async () => {
+      setLoading(true);
+      setFejl("");
+      try {
+        const scriptUrl = process.env.NEXT_PUBLIC_SCRIPT_URL;
+        if (!scriptUrl) throw new Error("Script URL not configured");
+        const res = await fetch(scriptUrl, { redirect: "follow" });
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setAlleKort(data);
+        } else if (data?.cards && Array.isArray(data.cards)) {
+          setAlleKort(data.cards);
+        } else if (data?.data && Array.isArray(data.data)) {
+          setAlleKort(data.data);
+        } else {
+          setAlleKort([]);
+        }
+      } catch {
+        setFejl("Kunne ikke hente kort fra Google Sheets. Prøv igen.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    hentKort();
+  }, []);
+
+  const startSession = (kategoriId: string) => {
+    const filtreret = alleKort.filter(
+      (k) => (k.category || "").toLowerCase() === kategoriId.toLowerCase()
+    );
+    setKort(filtreret);
+    setValgtKategori(kategoriId);
+    setNuværendeIndex(0);
+    setVisFlip(false);
+    setRigtige(0);
+    setForkerte(0);
+    setErFærdig(false);
+  };
+
+  const tilbageTilMenu = () => {
+    setValgtKategori(null);
+    setKort([]);
+    setNuværendeIndex(0);
+    setVisFlip(false);
+    setRigtige(0);
+    setForkerte(0);
+    setErFærdig(false);
+  };
 
   const handleFlip = () => setVisFlip(!visFlip);
 
   const handleSvar = (korrekt: boolean) => {
-    if (korrekt) {
-      setRigtige((r) => r + 1);
-    } else {
-      setForkerte((f) => f + 1);
-    }
+    if (korrekt) setRigtige((r) => r + 1);
+    else setForkerte((f) => f + 1);
     setVisFlip(false);
-
-    if (nuværendeIndex + 1 >= kort.length) {
-      setErFærdig(true);
-    } else {
-      setNuværendeIndex((i) => i + 1);
-    }
+    if (nuværendeIndex + 1 >= kort.length) setErFærdig(true);
+    else setNuværendeIndex((i) => i + 1);
   };
 
   const handleGenstart = () => {
@@ -58,8 +102,12 @@ function OevDigContent() {
     setErFærdig(false);
   };
 
+  const kortPerKategori = (id: string) =>
+    alleKort.filter((k) => (k.category || "").toLowerCase() === id.toLowerCase()).length;
+
   const total = kort.length;
-  const progress = ((nuværendeIndex) / total) * 100;
+  const progress = total > 0 ? (nuværendeIndex / total) * 100 : 0;
+  const nuværendeKort = kort[nuværendeIndex];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
@@ -70,117 +118,203 @@ function OevDigContent() {
             <BookOpen className="w-9 h-9 text-purple-400" />
             Øv dig
           </h1>
-          <p className="mt-2 text-gray-400 text-lg">Test din viden med flashcards</p>
+          <p className="mt-2 text-gray-400 text-lg">Vælg en kategori og test din viden</p>
         </div>
 
-        <div className="px-10 py-8 max-w-2xl">
-          {/* Progress bar */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
-              <span>{nuværendeIndex} af {total} kort</span>
-              <span className="flex gap-4">
-                <span className="text-emerald-400">✓ {rigtige}</span>
-                <span className="text-red-400">✗ {forkerte}</span>
-              </span>
+        <div className="px-10 py-8">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="w-10 h-10 text-purple-400 animate-spin mb-4" />
+              <p className="text-gray-400">Henter kort fra Google Sheets...</p>
             </div>
-            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-
-          {erFærdig ? (
-            /* Results screen */
-            <div className="rounded-2xl bg-white/5 border border-white/10 p-10 text-center backdrop-blur-sm">
-              <Brain className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-              <h2 className="text-3xl font-bold mb-2">Session færdig!</h2>
-              <p className="text-gray-400 mb-6">Du har gennemgået alle {total} kort</p>
-              <div className="flex justify-center gap-8 mb-8">
-                <div className="text-center">
-                  <p className="text-4xl font-bold text-emerald-400">{rigtige}</p>
-                  <p className="text-sm text-gray-400 mt-1">Rigtige</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-4xl font-bold text-red-400">{forkerte}</p>
-                  <p className="text-sm text-gray-400 mt-1">Forkerte</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-4xl font-bold text-blue-400">{total > 0 ? Math.round((rigtige / total) * 100) : 0}%</p>
-                  <p className="text-sm text-gray-400 mt-1">Score</p>
-                </div>
-              </div>
+          ) : fejl ? (
+            <div className="rounded-2xl bg-red-500/10 border border-red-500/20 p-8 text-center">
+              <p className="text-red-300 mb-4">{fejl}</p>
               <button
-                onClick={handleGenstart}
-                className="inline-flex items-center gap-2 px-8 py-3 bg-purple-600 hover:bg-purple-700 rounded-xl font-semibold transition-all duration-200"
+                onClick={() => window.location.reload()}
+                className="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-xl font-semibold transition"
               >
-                <RotateCcw className="w-5 h-5" />
                 Prøv igen
               </button>
             </div>
-          ) : (
-            /* Flashcard */
+          ) : !valgtKategori ? (
+            /* ===== KATEGORI MENU ===== */
             <>
-              <div
-                onClick={handleFlip}
-                className="group cursor-pointer rounded-2xl bg-white/5 border border-white/10 p-10 min-h-[300px] flex flex-col items-center justify-center backdrop-blur-sm hover:border-white/20 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/5 relative overflow-hidden"
+              <div className="flex items-center gap-2 mb-6">
+                <Layers className="w-5 h-5 text-gray-400" />
+                <span className="text-sm text-gray-400">{alleKort.length} kort i alt fra dit spreadsheet</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4 max-w-3xl">
+                {kategorier.map((kat) => {
+                  const antal = kortPerKategori(kat.id);
+                  return (
+                    <button
+                      key={kat.id}
+                      onClick={() => startSession(kat.id)}
+                      disabled={antal === 0}
+                      className={`group relative text-left overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-6 transition-all duration-300 ${kat.bgHover} ${
+                        antal === 0 ? "opacity-40 cursor-not-allowed" : "hover:shadow-xl hover:scale-[1.02] cursor-pointer"
+                      }`}
+                    >
+                      <div className={`absolute top-0 right-0 w-28 h-28 bg-gradient-to-br ${kat.color} opacity-10 rounded-bl-full`} />
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${kat.color} flex items-center justify-center mb-4`}>
+                        <kat.icon className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold mb-1">{kat.label}</h3>
+                      <p className="text-sm text-gray-400">
+                        {antal > 0 ? `${antal} kort klar` : "Ingen kort endnu"}
+                      </p>
+                      {antal > 0 && (
+                        <div className="mt-3 flex items-center gap-1 text-xs text-gray-500 group-hover:text-gray-300 transition-colors">
+                          Start øvelse <ChevronRight className="w-3 h-3" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            /* ===== FLASHCARD SESSION ===== */
+            <div className="max-w-2xl">
+              {/* Back button + category label */}
+              <button
+                onClick={tilbageTilMenu}
+                className="flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-6 transition-colors"
               >
-                <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-semibold ${visFlip ? "bg-purple-500/20 text-purple-300" : "bg-blue-500/20 text-blue-300"}`}>
-                  {visFlip ? "Svar" : "Spørgsmål"}
-                </div>
+                <ArrowLeft className="w-4 h-4" />
+                Tilbage til kategorier
+              </button>
 
-                <p className="text-2xl font-semibold text-center leading-relaxed max-w-md">
-                  {visFlip ? nuværendeKort.a : nuværendeKort.q}
-                </p>
-
-                {!visFlip && (
-                  <div className="mt-6 flex items-center gap-2 text-sm text-gray-500 group-hover:text-gray-300 transition-colors">
-                    <Eye className="w-4 h-4" />
-                    Klik for at se svaret
-                  </div>
-                )}
+              <div className="flex items-center gap-2 mb-4">
+                <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-semibold">
+                  {valgtKategori}
+                </span>
+                <span className="text-sm text-gray-500">{total} kort</span>
               </div>
 
-              {/* Answer buttons */}
-              {visFlip && (
-                <div className="mt-4 flex gap-3">
-                  <button
-                    onClick={() => handleSvar(false)}
-                    className="flex-1 flex items-center justify-center gap-2 py-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 font-semibold transition-all duration-200"
-                  >
-                    <ThumbsDown className="w-5 h-5" />
-                    Vidste det ikke
-                  </button>
-                  <button
-                    onClick={() => handleSvar(true)}
-                    className="flex-1 flex items-center justify-center gap-2 py-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 font-semibold transition-all duration-200"
-                  >
-                    <ThumbsUp className="w-5 h-5" />
-                    Vidste det!
-                  </button>
+              {total === 0 ? (
+                <div className="rounded-2xl bg-white/5 border border-white/10 p-10 text-center">
+                  <BookOpen className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-400 mb-2">Ingen kort i denne kategori endnu.</p>
+                  <p className="text-sm text-gray-500">Opret kort under "Opret kort" for at komme i gang.</p>
                 </div>
-              )}
+              ) : (
+                <>
+                  {/* Progress bar */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
+                      <span>{nuværendeIndex} af {total} kort</span>
+                      <span className="flex gap-4">
+                        <span className="text-emerald-400">✓ {rigtige}</span>
+                        <span className="text-red-400">✗ {forkerte}</span>
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
 
-              {/* Skip button */}
-              {!visFlip && (
-                <div className="mt-4 flex justify-end">
-                  <button
-                    onClick={() => {
-                      setVisFlip(false);
-                      if (nuværendeIndex + 1 >= kort.length) {
-                        setErFærdig(true);
-                      } else {
-                        setNuværendeIndex((i) => i + 1);
-                      }
-                    }}
-                    className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-300 transition-colors"
-                  >
-                    Spring over <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                  {erFærdig ? (
+                    <div className="rounded-2xl bg-white/5 border border-white/10 p-10 text-center backdrop-blur-sm">
+                      <Brain className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                      <h2 className="text-3xl font-bold mb-2">Session færdig!</h2>
+                      <p className="text-gray-400 mb-6">Du har gennemgået alle {total} kort i {valgtKategori}</p>
+                      <div className="flex justify-center gap-8 mb-8">
+                        <div className="text-center">
+                          <p className="text-4xl font-bold text-emerald-400">{rigtige}</p>
+                          <p className="text-sm text-gray-400 mt-1">Rigtige</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-4xl font-bold text-red-400">{forkerte}</p>
+                          <p className="text-sm text-gray-400 mt-1">Forkerte</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-4xl font-bold text-blue-400">{total > 0 ? Math.round((rigtige / total) * 100) : 0}%</p>
+                          <p className="text-sm text-gray-400 mt-1">Score</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-center gap-3">
+                        <button
+                          onClick={handleGenstart}
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-xl font-semibold transition-all duration-200"
+                        >
+                          <RotateCcw className="w-5 h-5" />
+                          Prøv igen
+                        </button>
+                        <button
+                          onClick={tilbageTilMenu}
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl font-semibold transition-all duration-200"
+                        >
+                          <ArrowLeft className="w-5 h-5" />
+                          Kategorier
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Flashcard */}
+                      <div
+                        onClick={handleFlip}
+                        className="group cursor-pointer rounded-2xl bg-white/5 border border-white/10 p-10 min-h-[300px] flex flex-col items-center justify-center backdrop-blur-sm hover:border-white/20 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/5 relative overflow-hidden"
+                      >
+                        <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-semibold ${visFlip ? "bg-purple-500/20 text-purple-300" : "bg-blue-500/20 text-blue-300"}`}>
+                          {visFlip ? "Svar" : "Spørgsmål"}
+                        </div>
+                        <p className="text-2xl font-semibold text-center leading-relaxed max-w-md">
+                          {visFlip ? nuværendeKort.answer : nuværendeKort.question}
+                        </p>
+                        {!visFlip && (
+                          <div className="mt-6 flex items-center gap-2 text-sm text-gray-500 group-hover:text-gray-300 transition-colors">
+                            <Eye className="w-4 h-4" />
+                            Klik for at se svaret
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Answer buttons */}
+                      {visFlip && (
+                        <div className="mt-4 flex gap-3">
+                          <button
+                            onClick={() => handleSvar(false)}
+                            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 font-semibold transition-all duration-200"
+                          >
+                            <ThumbsDown className="w-5 h-5" />
+                            Vidste det ikke
+                          </button>
+                          <button
+                            onClick={() => handleSvar(true)}
+                            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 font-semibold transition-all duration-200"
+                          >
+                            <ThumbsUp className="w-5 h-5" />
+                            Vidste det!
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Skip button */}
+                      {!visFlip && (
+                        <div className="mt-4 flex justify-end">
+                          <button
+                            onClick={() => {
+                              setVisFlip(false);
+                              if (nuværendeIndex + 1 >= kort.length) setErFærdig(true);
+                              else setNuværendeIndex((i) => i + 1);
+                            }}
+                            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-300 transition-colors"
+                          >
+                            Spring over <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </>
               )}
-            </>
+            </div>
           )}
         </div>
       </main>

@@ -11,6 +11,7 @@ function OpretKortContent() {
 
   const [spoergsmaal, setSpoergsmaal] = useState("");
   const [svar, setSvar] = useState("");
+  const [kategori, setKategori] = useState("Jura");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [besked, setBesked] = useState("");
   const [kortTaeller, setKortTaeller] = useState(0);
@@ -31,6 +32,7 @@ function OpretKortContent() {
         body: JSON.stringify({
           question: spoergsmaal,
           answer: svar,
+          category: kategori,
         }),
       });
 
@@ -41,6 +43,7 @@ function OpretKortContent() {
       setTimeout(() => {
         setSpoergsmaal("");
         setSvar("");
+        setKategori("Jura");
         setStatus("idle");
         setBesked("");
       }, 2000);
@@ -53,6 +56,7 @@ function OpretKortContent() {
   const handleReset = () => {
     setSpoergsmaal("");
     setSvar("");
+    setKategori("Jura");
     setStatus("idle");
     setBesked("");
   };
@@ -81,6 +85,27 @@ function OpretKortContent() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Kategori */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-300">Kategori</label>
+              <div className="flex flex-wrap gap-2">
+                {["Jura", "Portfolio", "Politifaglig", "Andet"].map((kat) => (
+                  <button
+                    key={kat}
+                    type="button"
+                    onClick={() => setKategori(kat)}
+                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border ${
+                      kategori === kat
+                        ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20"
+                        : "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    {kat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Spørgsmål */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-300 flex items-center gap-2">
