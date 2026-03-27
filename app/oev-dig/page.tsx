@@ -2,9 +2,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
-import { BookOpen, Eye, RotateCcw, ThumbsUp, ThumbsDown, Brain, ChevronRight, Scale, Briefcase, Shield, FolderOpen, Loader2, ArrowLeft, Layers } from "lucide-react";
+import { BookOpen, Eye, RotateCcw, ThumbsUp, ThumbsDown, Brain, ChevronRight, Scale, Briefcase, Shield, FolderOpen, Loader2, ArrowLeft, Layers, Flag } from "lucide-react";
 import { Suspense } from "react";
-import { hentAlleKort } from "@/app/dashboard/actions";
+import { hentAlleKort, rapporterFejl } from "@/app/dashboard/actions";
 
 interface Flashcard {
   question: string;
@@ -41,6 +41,12 @@ function OevDigContent() {
   const [forkerte, setForkerte] = useState(0);
   const [erFærdig, setErFærdig] = useState(false);
   const deckStarted = useRef(false);
+
+  // Report error modal state
+  const [showReport, setShowReport] = useState(false);
+  const [reportMsg, setReportMsg] = useState("");
+  const [reportSending, setReportSending] = useState(false);
+  const [reportSent, setReportSent] = useState(false);
 
   // Fetch cards visible to this user (own cards + public cards)
   useEffect(() => {
@@ -137,6 +143,28 @@ function OevDigContent() {
 
   const kortPerKategori = (id: string) =>
     alleKort.filter((k) => (k.category || "").toLowerCase() === id.toLowerCase()).length;
+
+  const handleReport = async () => {
+    if (!nuværendeKort || !reportMsg.trim()) return;
+    setReportSending(true);
+    try {
+      await rapporterFejl({
+        question: nuværendeKort.question,
+        reporter: bruger,
+        message: reportMsg.trim(),
+      });
+      setReportSent(true);
+      setTimeout(() => {
+        setShowReport(false);
+        setReportMsg("");
+        setReportSent(false);
+      }, 1500);
+    } catch {
+      alert("Kunne ikke sende rapport.");
+    } finally {
+      setReportSending(false);
+    }
+  };
 
   const total = kort.length;
   const progress = total > 0 ? (nuværendeIndex / total) * 100 : 0;
@@ -346,6 +374,14 @@ function OevDigContent() {
                         <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-semibold ${visFlip ? "bg-purple-500/20 text-purple-300" : "bg-blue-500/20 text-blue-300"}`}>
                           {visFlip ? "Svar" : "Spørgsmål"}
                         </div>
+                        {/* Report Error button */}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setShowReport(true); }}
+                          className="absolute bottom-4 right-4 p-2 rounded-lg text-amber-500/60 hover:text-amber-400 hover:bg-amber-500/10 transition-all"
+                          title="Rapportér fejl"
+                        >
+                          <Flag className="w-4 h-4" />
+                        </button>
                         <p className="text-2xl font-semibold text-center leading-relaxed max-w-md">
                           {visFlip ? nuværendeKort.answer : nuværendeKort.question}
                         </p>
@@ -356,6 +392,41 @@ function OevDigContent() {
                           </div>
                         )}
                       </div>
+
+                      {/* Report Error Modal */}
+                      {showReport && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowReport(false)}>
+                          <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2 mb-4">
+                              <Flag className="w-5 h-5 text-amber-400" />
+                              <h3 className="text-lg font-bold">Rapportér fejl</h3>
+                            </div>
+                            <p className="text-sm text-gray-400 mb-1">Kort: <span className="text-gray-300">{nuværendeKort.question}</span></p>
+                            <textarea
+                              value={reportMsg}
+                              onChange={(e) => setReportMsg(e.target.value)}
+                              placeholder="Hvad er fejlen?"
+                              rows={3}
+                              className="w-full mt-3 rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-amber-500 focus:outline-none resize-none"
+                            />
+                            <div className="flex gap-2 mt-4 justify-end">
+                              <button
+                                onClick={() => { setShowReport(false); setReportMsg(""); }}
+                                className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-gray-400 hover:text-white transition"
+                              >
+                                Annuller
+                              </button>
+                              <button
+                                onClick={handleReport}
+                                disabled={!reportMsg.trim() || reportSending || reportSent}
+                                className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-sm font-semibold text-white transition disabled:opacity-50 flex items-center gap-1.5"
+                              >
+                                {reportSending ? <Loader2 className="w-4 h-4 animate-spin" /> : reportSent ? "✓ Sendt!" : "Send rapport"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Answer buttons */}
                       {visFlip && (

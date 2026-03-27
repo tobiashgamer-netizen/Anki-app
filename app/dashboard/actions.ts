@@ -138,3 +138,21 @@ export async function likeDeck(data: {
     return { success: false, error: "Netværksfejl" };
   }
 }
+
+export async function rapporterFejl(data: {
+  question: string;
+  reporter: string;
+  message: string;
+}) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'reportError', ...data }),
+      redirect: 'follow',
+    });
+    const result = await res.json();
+    return result;
+  } catch {
+    return { success: false, error: "Netværksfejl" };
+  }
+}

@@ -27,6 +27,7 @@ function doPost(e) {
     if (action === "deleteCard") return deleteCard(data);
     if (action === "copyDeck") return copyDeck(data);
     if (action === "likeDeck") return likeDeck(data);
+    if (action === "reportError") return reportError(data);
 
     // Default: addCard
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
@@ -68,6 +69,19 @@ function getCards(params) {
   var cards = [];
   var filterUser = params && params.user ? params.user : null;
 
+  // Collect open error reports from Reports sheet
+  var reportSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Reports");
+  var errorMap = {}; // question -> latest error message
+  if (reportSheet) {
+    var reports = reportSheet.getDataRange().getValues();
+    for (var r = 1; r < reports.length; r++) {
+      if (String(reports[r][4]).toLowerCase() === "open") {
+        var q = String(reports[r][1] || "");
+        errorMap[q] = String(reports[r][3] || "");
+      }
+    }
+  }
+
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
     if (row[1] || row[2]) {
@@ -79,7 +93,8 @@ function getCards(params) {
         user: row[4] || "",
         public: String(row[5]).toLowerCase() === "true",
         likes: Number(row[6]) || 0,
-        deckname: row[7] || ""
+        deckname: row[7] || "",
+        error_report: errorMap[String(row[1] || "")] || null
       };
 
       if (filterUser) {
@@ -205,6 +220,32 @@ function copyDeck(data) {
 
   return ContentService
     .createTextOutput(JSON.stringify({ success: true, copied: copied }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// Report an error on a card: append to a separate "Reports" sheet
+function reportError(data) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var reportSheet = ss.getSheetByName("Reports");
+  if (!reportSheet) {
+    reportSheet = ss.insertSheet("Reports");
+    reportSheet.appendRow(["Dato", "Spørgsmål", "Reporter", "Fejlbesked", "Status"]);
+  }
+
+  var question = data.question || "";
+  var reporter = data.reporter || "";
+  var message = data.message || "";
+
+  if (!question || !message) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: "Missing question or message" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  reportSheet.appendRow([new Date(), question, reporter, message, "open"]);
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ success: true }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 

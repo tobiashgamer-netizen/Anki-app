@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/ui/sidebar";
 import {
   Layers, ChevronDown, ChevronRight, Pencil, Trash2, X, Check,
   Loader2, Globe, Lock, Scale, Briefcase, Shield, FolderOpen, User, BookOpen, Database,
+  AlertTriangle,
 } from "lucide-react";
 import { Suspense } from "react";
 import { hentAlleKort, redigerKort, sletKort } from "@/app/dashboard/actions";
@@ -18,6 +19,7 @@ interface Flashcard {
   public: boolean;
   likes: number;
   deckname: string;
+  error_report?: string | null;
 }
 
 const katIcons: Record<string, typeof Scale> = {
@@ -312,7 +314,22 @@ function MineKortContent() {
                                     <Icon className="w-3.5 h-3.5 text-white" />
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-200 truncate">{kort.question}</p>
+                                    <div className="flex items-center gap-1.5">
+                                      <p className="text-sm font-medium text-gray-200 truncate">{kort.question}</p>
+                                      {kort.error_report && (
+                                        <span
+                                          className="relative group/err flex-shrink-0"
+                                          title={bruger === "admin" ? kort.error_report : "Fejl rapporteret"}
+                                        >
+                                          <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
+                                          {bruger === "admin" && (
+                                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover/err:block px-2 py-1 rounded bg-gray-800 border border-red-500/30 text-xs text-red-300 whitespace-nowrap z-10 max-w-xs truncate">
+                                              {kort.error_report}
+                                            </span>
+                                          )}
+                                        </span>
+                                      )}
+                                    </div>
                                     <p className="text-xs text-gray-500 truncate mt-0.5">{kort.answer}</p>
                                   </div>
                                   <div className="flex items-center gap-2 flex-shrink-0">

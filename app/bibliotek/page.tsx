@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/ui/sidebar";
 import {
   Database, Search, Scale, Briefcase, Shield, FolderOpen, Loader2,
   User, Heart, Copy, Layers, ChevronDown, ChevronRight, X, BookOpen,
-  BadgeCheck,
+  BadgeCheck, AlertTriangle,
 } from "lucide-react";
 import { Suspense } from "react";
 import { hentAlleKort, kopierDeck, likeDeck } from "@/app/dashboard/actions";
@@ -19,6 +19,7 @@ interface Flashcard {
   public: boolean;
   likes: number;
   deckname: string;
+  error_report?: string | null;
 }
 
 interface Deck {
@@ -27,6 +28,7 @@ interface Deck {
   category: string;
   cards: Flashcard[];
   likes: number;
+  hasErrors: boolean;
 }
 
 const OFFICIAL_OWNERS = ["admin", "officiel"];
@@ -85,10 +87,11 @@ function BibliotekContent() {
       const dn = k.deckname || "Unavngivet deck";
       const key = `${dn}|||${k.user}`;
       if (!map[key]) {
-        map[key] = { deckname: dn, owner: k.user, category: k.category, cards: [], likes: 0 };
+        map[key] = { deckname: dn, owner: k.user, category: k.category, cards: [], likes: 0, hasErrors: false };
       }
       map[key].cards.push(k);
       if (k.likes > map[key].likes) map[key].likes = k.likes;
+      if (k.error_report) map[key].hasErrors = true;
     }
     return Object.values(map);
   }, [alleKort]);
@@ -285,7 +288,22 @@ function BibliotekContent() {
           <div className="border-t border-white/5 max-h-80 overflow-y-auto">
             {deck.cards.map((kort, i) => (
               <div key={kort.row || i} className="px-5 py-3 border-b border-white/5 last:border-b-0 hover:bg-white/[0.02]">
-                <p className="text-sm font-medium text-gray-200">{kort.question}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-gray-200">{kort.question}</p>
+                  {kort.error_report && (
+                    <span
+                      className="relative group/err flex-shrink-0"
+                      title={bruger === "admin" ? kort.error_report : "Fejl rapporteret"}
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
+                      {bruger === "admin" && (
+                        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover/err:block px-2 py-1 rounded bg-gray-800 border border-red-500/30 text-xs text-red-300 whitespace-nowrap z-10 max-w-xs truncate">
+                          {kort.error_report}
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-gray-500 mt-1">{kort.answer}</p>
               </div>
             ))}
