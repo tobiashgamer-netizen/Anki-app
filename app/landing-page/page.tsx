@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import {
   BookOpen, PlusCircle, Trophy, Zap, Layers, Loader2,
-  Search, X, Eye, Database, Sparkles,
+  Search, X, Eye, Database, Sparkles, Brain,
 } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -35,6 +35,8 @@ function DashboardContent() {
   const [soegning, setSoegning] = useState("");
   const [previewKort, setPreviewKort] = useState<Flashcard | null>(null);
   const [previewFlipped, setPreviewFlipped] = useState(false);
+  const [mestretCount, setMestretCount] = useState(0);
+  const [officielleCount, setOfficielleCount] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +44,18 @@ function DashboardContent() {
       try {
         const result = await hentAlleKort(bruger);
         if (result.success && Array.isArray(result.kort)) {
-          setAlleKort(result.kort as Flashcard[]);
+          const cards = result.kort as Flashcard[];
+          setAlleKort(cards);
+          // Compute SRS mastered count
+          const officielle = cards.filter((k) =>
+            OFFICIAL_OWNERS.includes(k.user.toLowerCase()) && k.public
+          );
+          setOfficielleCount(officielle.length);
+          try {
+            const progress = JSON.parse(localStorage.getItem("anki_progress") || "{}");
+            const mestret = officielle.filter((k) => progress[k.question]?.level === 2).length;
+            setMestretCount(mestret);
+          } catch { /* silent */ }
         }
       } catch { /* silent */ } finally {
         setLoading(false);
@@ -179,6 +192,28 @@ function DashboardContent() {
                 <Eye className="w-4 h-4" />
                 Klik for at se svaret
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Viden-status Widget */}
+        {!loading && officielleCount > 0 && (
+          <div className="px-10 py-2">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Brain className="w-5 h-5 text-purple-400" />
+              Viden-status
+            </h2>
+            <div className="rounded-2xl bg-gradient-to-br from-purple-500/5 to-blue-500/5 border border-purple-500/20 p-6 max-w-2xl">
+              <p className="text-lg text-gray-200">
+                Du har mestret <span className="font-bold text-emerald-400">{mestretCount}</span> ud af <span className="font-bold text-blue-400">{officielleCount}</span> officielle kort
+              </p>
+              <div className="mt-3 w-full h-3 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full transition-all duration-500"
+                  style={{ width: `${officielleCount > 0 ? (mestretCount / officielleCount) * 100 : 0}%` }}
+                />
+              </div>
+              <p className="text-sm text-gray-500 mt-2">{officielleCount > 0 ? Math.round((mestretCount / officielleCount) * 100) : 0}% mestret</p>
             </div>
           </div>
         )}

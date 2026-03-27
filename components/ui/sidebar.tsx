@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useSearchParams, usePathname } from "next/navigation";
-import { Home, PlusCircle, BookOpen, Trophy, Settings, LogOut, User, Layers, Database } from "lucide-react";
+import { Home, PlusCircle, BookOpen, Trophy, Settings, LogOut, User, Layers, Database, RotateCcw } from "lucide-react";
 
 const navItems = [
   { href: "/landing-page", label: "Hjem", icon: Home },
@@ -54,6 +54,18 @@ export function Sidebar() {
 
       {/* User section */}
       <div className="px-3 pb-6 space-y-2">
+        <button
+          onClick={() => {
+            if (confirm("Er du sikker? Dette nulstiller al din l\u00E6ringsfremdrift.")) {
+              localStorage.removeItem("anki_progress");
+              window.location.reload();
+            }
+          }}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 transition-all duration-200 w-full"
+        >
+          <RotateCcw className="w-5 h-5" />
+          Nulstil fremgang
+        </button>
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
             <User className="w-5 h-5 text-white" />

@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
-import { BookOpen, Eye, RotateCcw, ThumbsUp, ThumbsDown, Brain, ChevronRight, Scale, Briefcase, Shield, FolderOpen, Loader2, ArrowLeft, Layers, Flag, X } from "lucide-react";
+import { BookOpen, Eye, RotateCcw, Brain, ChevronRight, Scale, Briefcase, Shield, FolderOpen, Loader2, ArrowLeft, Layers, Flag, X, Star } from "lucide-react";
 import { Suspense } from "react";
 import { hentAlleKort, rapporterFejl } from "@/app/dashboard/actions";
 
@@ -23,6 +23,69 @@ const kategorier = [
   { id: "Andet", label: "Andet", icon: FolderOpen, color: "from-amber-500 to-orange-600", bgHover: "hover:border-amber-500/40" },
 ];
 
+// ===== SRS (Spaced Repetition System) =====
+interface CardProgress {
+  level: number;
+  lastSeen: number;
+  nextReview: number;
+}
+
+const REVIEW_INTERVALS: Record<number, number> = {
+  0: 60 * 1000,           // Svært: 1 minut
+  1: 10 * 60 * 1000,      // Okay: 10 minutter
+  2: 24 * 60 * 60 * 1000, // Let: 1 dag
+};
+
+function getSrsProgress(): Record<string, CardProgress> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(localStorage.getItem("anki_progress") || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function updateCardProgress(cardId: string, quality: 0 | 1 | 2) {
+  const progress = getSrsProgress();
+  const now = Date.now();
+  progress[cardId] = {
+    level: quality,
+    lastSeen: now,
+    nextReview: now + REVIEW_INTERVALS[quality],
+  };
+  localStorage.setItem("anki_progress", JSON.stringify(progress));
+}
+
+function getCardLevel(cardId: string): number {
+  const progress = getSrsProgress();
+  return progress[cardId]?.level ?? -1;
+}
+
+function sortByReviewPriority(cards: Flashcard[]): Flashcard[] {
+  const progress = getSrsProgress();
+  const now = Date.now();
+  return [...cards].sort((a, b) => {
+    const pa = progress[a.question];
+    const pb = progress[b.question];
+    return srsScore(pa, now) - srsScore(pb, now);
+  });
+}
+
+function srsScore(p: CardProgress | undefined, now: number): number {
+  if (!p) return 1;                  // Nyt kort – høj prioritet
+  if (p.nextReview <= now) return 0; // Overskredet – højeste prioritet
+  if (p.level === 0) return 2;       // Svært – medium prioritet
+  return 3 + (p.nextReview - now);   // Fremtidigt review
+}
+
+function getStrengthIndicator(cardId: string): { dots: number; color: string } {
+  const level = getCardLevel(cardId);
+  if (level === 2) return { dots: 3, color: "text-emerald-400" };
+  if (level === 1) return { dots: 2, color: "text-amber-400" };
+  if (level === 0) return { dots: 1, color: "text-red-400" };
+  return { dots: 0, color: "text-gray-600" };
+}
+
 function OevDigContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -38,8 +101,9 @@ function OevDigContent() {
   const [fejl, setFejl] = useState("");
   const [nuværendeIndex, setNuværendeIndex] = useState(0);
   const [visFlip, setVisFlip] = useState(false);
-  const [rigtige, setRigtige] = useState(0);
-  const [forkerte, setForkerte] = useState(0);
+  const [sværtCount, setSværtCount] = useState(0);
+  const [okayCount, setOkayCount] = useState(0);
+  const [letCount, setLetCount] = useState(0);
   const [erFærdig, setErFærdig] = useState(false);
   const deckStarted = useRef(false);
 
@@ -92,13 +156,14 @@ function OevDigContent() {
       const deckCards = alleKort.filter(
         (k) => k.deckname === deckParam && k.user === ownerParam
       );
-      setKort(deckCards);
+      setKort(sortByReviewPriority(deckCards));
       setDeckMode(deckParam);
       setValgtKategori(null);
       setNuværendeIndex(0);
       setVisFlip(false);
-      setRigtige(0);
-      setForkerte(0);
+      setSværtCount(0);
+      setOkayCount(0);
+      setLetCount(0);
       setErFærdig(false);
     }
   }, [deckParam, ownerParam, alleKort]);
@@ -107,13 +172,14 @@ function OevDigContent() {
     const filtreret = alleKort.filter(
       (k) => (k.category || "").toLowerCase() === kategoriId.toLowerCase()
     );
-    setKort(filtreret);
+    setKort(sortByReviewPriority(filtreret));
     setValgtKategori(kategoriId);
     setDeckMode(null);
     setNuværendeIndex(0);
     setVisFlip(false);
-    setRigtige(0);
-    setForkerte(0);
+    setSværtCount(0);
+    setOkayCount(0);
+    setLetCount(0);
     setErFærdig(false);
   };
 
@@ -123,26 +189,52 @@ function OevDigContent() {
     setKort([]);
     setNuværendeIndex(0);
     setVisFlip(false);
-    setRigtige(0);
-    setForkerte(0);
+    setSværtCount(0);
+    setOkayCount(0);
+    setLetCount(0);
     setErFærdig(false);
   };
 
   const handleFlip = () => setVisFlip(!visFlip);
 
-  const handleSvar = (korrekt: boolean) => {
-    if (korrekt) setRigtige((r) => r + 1);
-    else setForkerte((f) => f + 1);
+  const handleSRS = (quality: 0 | 1 | 2) => {
+    const currentCard = kort[nuværendeIndex];
+    updateCardProgress(currentCard.question, quality);
+
+    if (quality === 0) setSværtCount((c) => c + 1);
+    else if (quality === 1) setOkayCount((c) => c + 1);
+    else setLetCount((c) => c + 1);
+
     setVisFlip(false);
-    if (nuværendeIndex + 1 >= kort.length) setErFærdig(true);
-    else setNuværendeIndex((i) => i + 1);
+
+    const willRetry = quality === 0;
+    if (willRetry) {
+      setKort((prev) => [...prev, currentCard]);
+    }
+
+    const effectiveLength = kort.length + (willRetry ? 1 : 0);
+    if (nuværendeIndex + 1 >= effectiveLength) {
+      setErFærdig(true);
+    } else {
+      setNuværendeIndex((i) => i + 1);
+    }
   };
 
   const handleGenstart = () => {
+    let baseCards: Flashcard[];
+    if (deckMode) {
+      baseCards = alleKort.filter((k) => k.deckname === deckMode && k.user === (ownerParam || ""));
+    } else if (valgtKategori) {
+      baseCards = alleKort.filter((k) => (k.category || "").toLowerCase() === valgtKategori.toLowerCase());
+    } else {
+      baseCards = [];
+    }
+    setKort(sortByReviewPriority(baseCards));
     setNuværendeIndex(0);
     setVisFlip(false);
-    setRigtige(0);
-    setForkerte(0);
+    setSværtCount(0);
+    setOkayCount(0);
+    setLetCount(0);
     setErFærdig(false);
   };
 
@@ -311,8 +403,9 @@ function OevDigContent() {
                     <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
                       <span>{nuværendeIndex} af {total} kort</span>
                       <span className="flex gap-4">
-                        <span className="text-emerald-400">✓ {rigtige}</span>
-                        <span className="text-red-400">✗ {forkerte}</span>
+                        <span className="text-red-400">● {sværtCount}</span>
+                        <span className="text-amber-400">● {okayCount}</span>
+                        <span className="text-emerald-400">● {letCount}</span>
                       </span>
                     </div>
                     <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
@@ -327,19 +420,19 @@ function OevDigContent() {
                     <div className="rounded-2xl bg-white/5 border border-white/10 p-10 text-center backdrop-blur-sm">
                       <Brain className="w-16 h-16 text-purple-400 mx-auto mb-4" />
                       <h2 className="text-3xl font-bold mb-2">Session færdig!</h2>
-                      <p className="text-gray-400 mb-6">Du har gennemgået alle {total} kort i {deckMode || valgtKategori}</p>
+                      <p className="text-gray-400 mb-6">Du har gennemgået alle kort i {deckMode || valgtKategori}</p>
                       <div className="flex justify-center gap-8 mb-8">
                         <div className="text-center">
-                          <p className="text-4xl font-bold text-emerald-400">{rigtige}</p>
-                          <p className="text-sm text-gray-400 mt-1">Rigtige</p>
+                          <p className="text-4xl font-bold text-red-400">{sværtCount}</p>
+                          <p className="text-sm text-gray-400 mt-1">Svært</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-4xl font-bold text-red-400">{forkerte}</p>
-                          <p className="text-sm text-gray-400 mt-1">Forkerte</p>
+                          <p className="text-4xl font-bold text-amber-400">{okayCount}</p>
+                          <p className="text-sm text-gray-400 mt-1">Okay</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-4xl font-bold text-blue-400">{total > 0 ? Math.round((rigtige / total) * 100) : 0}%</p>
-                          <p className="text-sm text-gray-400 mt-1">Score</p>
+                          <p className="text-4xl font-bold text-emerald-400">{letCount}</p>
+                          <p className="text-sm text-gray-400 mt-1">Let</p>
                         </div>
                       </div>
                       <div className="flex justify-center gap-3">
@@ -379,6 +472,17 @@ function OevDigContent() {
                         <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-semibold ${visFlip ? "bg-purple-500/20 text-purple-300" : "bg-blue-500/20 text-blue-300"}`}>
                           {visFlip ? "Svar" : "Spørgsmål"}
                         </div>
+                        {/* Strength indicator */}
+                        {(() => {
+                          const { dots, color } = getStrengthIndicator(nuværendeKort.question);
+                          return dots > 0 ? (
+                            <div className={`absolute top-4 left-4 flex gap-1 ${color}`}>
+                              {Array.from({ length: dots }).map((_, i) => (
+                                <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                              ))}
+                            </div>
+                          ) : null;
+                        })()}
                         {/* Report Error button */}
                         <button
                           onClick={(e) => { e.stopPropagation(); setShowReport(true); }}
@@ -452,22 +556,29 @@ function OevDigContent() {
                         </div>
                       )}
 
-                      {/* Answer buttons */}
+                      {/* SRS Answer buttons */}
                       {visFlip && (
                         <div className="mt-4 flex gap-3">
                           <button
-                            onClick={() => handleSvar(false)}
-                            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 font-semibold transition-all duration-200"
+                            onClick={() => handleSRS(0)}
+                            className="flex-1 flex flex-col items-center justify-center gap-1 py-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 font-semibold transition-all duration-200"
                           >
-                            <ThumbsDown className="w-5 h-5" />
-                            Vidste det ikke
+                            <span className="text-lg">Svært</span>
+                            <span className="text-xs opacity-60">Vis igen snart</span>
                           </button>
                           <button
-                            onClick={() => handleSvar(true)}
-                            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 font-semibold transition-all duration-200"
+                            onClick={() => handleSRS(1)}
+                            className="flex-1 flex flex-col items-center justify-center gap-1 py-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 font-semibold transition-all duration-200"
                           >
-                            <ThumbsUp className="w-5 h-5" />
-                            Vidste det!
+                            <span className="text-lg">Okay</span>
+                            <span className="text-xs opacity-60">Vis igen senere</span>
+                          </button>
+                          <button
+                            onClick={() => handleSRS(2)}
+                            className="flex-1 flex flex-col items-center justify-center gap-1 py-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 font-semibold transition-all duration-200"
+                          >
+                            <span className="text-lg">Let</span>
+                            <span className="text-xs opacity-60">Mestret!</span>
                           </button>
                         </div>
                       )}
