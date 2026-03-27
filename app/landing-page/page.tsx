@@ -116,17 +116,17 @@ function DashboardContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
-      <main className="pl-64">
-        <div className="px-10 pt-10 pb-2">
-          <h1 className="text-4xl font-bold">
+      <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
+          <h1 className="text-2xl md:text-4xl font-bold">
             Velkommen tilbage, <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">{bruger}</span>!
           </h1>
-          <p className="mt-2 text-gray-400 text-lg">Klar til at lære noget nyt i dag?</p>
+          <p className="mt-1 md:mt-2 text-gray-400 text-sm md:text-lg">Klar til at lære noget nyt i dag?</p>
         </div>
 
         {/* Broadcast Banner */}
         {broadcastMsg && (
-          <div className="px-10 pt-4">
+          <div className="px-4 md:px-10 pt-4">
             <div className="rounded-xl bg-gradient-to-r from-blue-500/10 to-amber-500/10 border border-amber-500/30 p-4 flex items-center gap-3">
               <Megaphone className="w-5 h-5 text-amber-400 shrink-0" />
               <p className="text-sm text-amber-200 font-medium">{broadcastMsg}</p>
@@ -135,7 +135,7 @@ function DashboardContent() {
         )}
 
         {/* Global Search */}
-        <div className="px-10 pt-4 pb-2">
+        <div className="px-4 md:px-10 pt-4 pb-2">
           <div className="relative max-w-2xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
             <input
@@ -172,7 +172,7 @@ function DashboardContent() {
         </div>
 
         {/* Stats */}
-        <div className="px-10 py-6 grid grid-cols-4 gap-4">
+        <div className="px-4 md:px-10 py-4 md:py-6 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="rounded-2xl bg-white/5 border border-white/10 p-5 animate-pulse h-28" />
@@ -182,7 +182,7 @@ function DashboardContent() {
               <div key={stat.label} className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-5 backdrop-blur-sm">
                 <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${stat.color} opacity-10 rounded-bl-full`} />
                 <stat.icon className="w-6 h-6 text-gray-400 mb-3" />
-                <p className="text-3xl font-bold">{stat.value}</p>
+                <p className="text-2xl md:text-3xl font-bold">{stat.value}</p>
                 <p className="text-sm text-gray-400 mt-1">{stat.label}</p>
               </div>
             ))
@@ -191,7 +191,7 @@ function DashboardContent() {
 
         {/* Dagens Tilfældige Spørgsmål */}
         {!loading && dagensKort && (
-          <div className="px-10 py-2">
+          <div className="px-4 md:px-10 py-2">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-amber-400" />
               Dagens tilfældige spørgsmål
@@ -215,7 +215,7 @@ function DashboardContent() {
 
         {/* Viden-status Widget */}
         {!loading && officielleCount > 0 && (
-          <div className="px-10 py-2">
+          <div className="px-4 md:px-10 py-2">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Brain className="w-5 h-5 text-purple-400" />
               Viden-status
@@ -236,12 +236,12 @@ function DashboardContent() {
         )}
 
         {/* Quick Actions */}
-        <div className="px-10 py-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+        <div className="px-4 md:px-10 py-4 md:py-6">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 flex items-center gap-2">
             <Zap className="w-5 h-5 text-amber-400" />
             Hurtige handlinger
           </h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
             {quickActions.map((action) => (
               <Link
                 key={action.label}

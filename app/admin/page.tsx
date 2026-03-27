@@ -160,17 +160,17 @@ function AdminContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
-      <main className="pl-64">
-        <div className="px-10 pt-10 pb-2">
-          <h1 className="text-4xl font-bold flex items-center gap-3">
-            <ShieldCheck className="w-9 h-9 text-blue-400" />
+      <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
+          <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-3">
+            <ShieldCheck className="w-7 h-7 md:w-9 md:h-9 text-blue-400" />
             Admin Panel
           </h1>
-          <p className="mt-2 text-gray-400 text-lg">Administrer kort, fejl og brugere</p>
+          <p className="mt-1 md:mt-2 text-gray-400 text-sm md:text-lg">Administrer kort, fejl og brugere</p>
         </div>
 
         {/* Tabs */}
-        <div className="px-10 pt-4 pb-2 flex gap-2 overflow-x-auto">
+        <div className="px-4 md:px-10 pt-4 pb-2 flex gap-2 overflow-x-auto">
           {tabs.map((t) => (
             <button
               key={t.id}
@@ -190,7 +190,7 @@ function AdminContent() {
           ))}
         </div>
 
-        <div className="px-10 py-6">
+        <div className="px-4 md:px-10 py-4 md:py-6">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="w-10 h-10 text-blue-400 animate-spin mb-4" />

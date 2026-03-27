@@ -273,16 +273,16 @@ function OevDigContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
-      <main className="pl-64">
-        <div className="px-10 pt-10 pb-2">
-          <h1 className="text-4xl font-bold flex items-center gap-3">
-            <BookOpen className="w-9 h-9 text-purple-400" />
+      <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
+          <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-3">
+            <BookOpen className="w-7 h-7 md:w-9 md:h-9 text-purple-400" />
             Øv dig
           </h1>
-          <p className="mt-2 text-gray-400 text-lg">Vælg en kategori og test din viden</p>
+          <p className="mt-1 md:mt-2 text-gray-400 text-sm md:text-lg">Vælg en kategori og test din viden</p>
         </div>
 
-        <div className="px-10 py-8">
+        <div className="px-4 md:px-10 py-4 md:py-8">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="w-10 h-10 text-purple-400 animate-spin mb-4" />
@@ -305,7 +305,7 @@ function OevDigContent() {
                 <Layers className="w-5 h-5 text-gray-400" />
                 <span className="text-sm text-gray-400">{alleKort.length} kort i alt fra dit spreadsheet</span>
               </div>
-              <div className="grid grid-cols-2 gap-4 max-w-3xl">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
                 {kategorier.map((kat) => {
                   const antal = kortPerKategori(kat.id);
                   return (
@@ -470,7 +470,7 @@ function OevDigContent() {
                       {/* Flashcard */}
                       <div
                         onClick={handleFlip}
-                        className="group cursor-pointer rounded-2xl bg-white/5 border border-white/10 p-10 min-h-[300px] flex flex-col items-center justify-center backdrop-blur-sm hover:border-white/20 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/5 relative overflow-hidden"
+                        className="group cursor-pointer rounded-2xl bg-white/5 border border-white/10 p-6 md:p-10 min-h-[200px] md:min-h-[300px] flex flex-col items-center justify-center backdrop-blur-sm hover:border-white/20 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/5 relative overflow-hidden"
                       >
                         <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-semibold ${visFlip ? "bg-purple-500/20 text-purple-300" : "bg-blue-500/20 text-blue-300"}`}>
                           {visFlip ? "Svar" : "Spørgsmål"}
@@ -494,7 +494,7 @@ function OevDigContent() {
                         >
                           <Flag className="w-4 h-4" />
                         </button>
-                        <p className="text-2xl font-semibold text-center leading-relaxed max-w-md">
+                        <p className="text-lg md:text-2xl font-semibold text-center leading-relaxed max-w-md">
                           {visFlip ? nuværendeKort.answer : nuværendeKort.question}
                         </p>
                         {/* Verified badge */}
@@ -568,7 +568,7 @@ function OevDigContent() {
 
                       {/* SRS Answer buttons */}
                       {visFlip && (
-                        <div className="mt-4 flex gap-3">
+                        <div className="mt-4 flex gap-2 md:gap-3">
                           <button
                             onClick={() => handleSRS(0)}
                             className="flex-1 flex flex-col items-center justify-center gap-1 py-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 font-semibold transition-all duration-200"

@@ -68,16 +68,16 @@ function OpretKortContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
-      <main className="pl-64">
-        <div className="px-10 pt-10 pb-2">
-          <h1 className="text-4xl font-bold flex items-center gap-3">
-            <PlusCircle className="w-9 h-9 text-blue-400" />
+      <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
+          <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-3">
+            <PlusCircle className="w-7 h-7 md:w-9 md:h-9 text-blue-400" />
             Opret nyt flashcard
           </h1>
-          <p className="mt-2 text-gray-400 text-lg">Skriv et spørgsmål og svar for at oprette et nyt kort</p>
+          <p className="mt-1 md:mt-2 text-gray-400 text-sm md:text-lg">Skriv et spørgsmål og svar for at oprette et nyt kort</p>
         </div>
 
-        <div className="px-10 py-8 max-w-3xl">
+        <div className="px-4 md:px-10 py-4 md:py-8 max-w-3xl">
           {/* Session counter */}
           {kortTaeller > 0 && (
             <div className="mb-6 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 w-fit">

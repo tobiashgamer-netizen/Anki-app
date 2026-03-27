@@ -317,16 +317,16 @@ function BibliotekContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
-      <main className="pl-64">
-        <div className="px-10 pt-10 pb-2">
-          <h1 className="text-4xl font-bold flex items-center gap-3">
-            <Database className="w-9 h-9 text-blue-400" />
+      <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
+          <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-3">
+            <Database className="w-7 h-7 md:w-9 md:h-9 text-blue-400" />
             Bibliotek
           </h1>
-          <p className="mt-2 text-gray-400 text-lg">Udforsk decks, start en øvelse eller kopier til din samling</p>
+          <p className="mt-1 md:mt-2 text-gray-400 text-sm md:text-lg">Udforsk decks, start en øvelse eller kopier til din samling</p>
         </div>
 
-        <div className="px-10 py-6">
+        <div className="px-4 md:px-10 py-4 md:py-6">
           {/* Search bar */}
           <div className="relative max-w-2xl mb-6">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />

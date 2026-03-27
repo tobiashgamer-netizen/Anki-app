@@ -58,26 +58,26 @@ function LeaderboardContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
-      <main className="pl-64">
-        <div className="px-10 pt-10 pb-2">
-          <h1 className="text-4xl font-bold flex items-center gap-3">
-            <Trophy className="w-9 h-9 text-amber-400" />
+      <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
+          <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-3">
+            <Trophy className="w-7 h-7 md:w-9 md:h-9 text-amber-400" />
             Leaderboard
           </h1>
-          <p className="mt-2 text-gray-400 text-lg">Se hvem der har lavet flest kort og har den højeste score</p>
+          <p className="mt-1 md:mt-2 text-gray-400 text-sm md:text-lg">Se hvem der har lavet flest kort og har den højeste score</p>
         </div>
 
         {/* Top 3 podium */}
-        <div className="px-10 py-6">
-          <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto">
+        <div className="px-4 md:px-10 py-4 md:py-6">
+          <div className="grid grid-cols-3 gap-2 md:gap-4 max-w-3xl mx-auto">
             {/* 2nd place */}
             <div className="flex flex-col items-center pt-8">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-2xl font-bold mb-3 ring-4 ring-gray-400/30">
+              <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-xl md:text-2xl font-bold mb-2 md:mb-3 ring-4 ring-gray-400/30">
                 {leaderboardData[1].name.charAt(0)}
               </div>
-              <Medal className="w-8 h-8 text-gray-300 mb-1" />
-              <p className="font-bold text-lg">{leaderboardData[1].name}</p>
-              <p className="text-gray-400 text-sm">{leaderboardData[1].score} point</p>
+              <Medal className="w-6 h-6 md:w-8 md:h-8 text-gray-300 mb-1" />
+              <p className="font-bold text-sm md:text-lg">{leaderboardData[1].name}</p>
+              <p className="text-gray-400 text-xs md:text-sm">{leaderboardData[1].score} point</p>
               <div className="mt-2 px-3 py-1 rounded-full bg-gray-400/10 text-xs text-gray-300 font-medium">
                 {leaderboardData[1].kort} kort
               </div>
@@ -85,12 +85,12 @@ function LeaderboardContent() {
 
             {/* 1st place */}
             <div className="flex flex-col items-center">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-3xl font-bold mb-3 ring-4 ring-amber-400/30 shadow-xl shadow-amber-500/20">
+              <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-2xl md:text-3xl font-bold mb-2 md:mb-3 ring-4 ring-amber-400/30 shadow-xl shadow-amber-500/20">
                 {leaderboardData[0].name.charAt(0)}
               </div>
-              <Crown className="w-10 h-10 text-amber-400 mb-1" />
-              <p className="font-bold text-xl">{leaderboardData[0].name}</p>
-              <p className="text-gray-400 text-sm">{leaderboardData[0].score} point</p>
+              <Crown className="w-7 h-7 md:w-10 md:h-10 text-amber-400 mb-1" />
+              <p className="font-bold text-base md:text-xl">{leaderboardData[0].name}</p>
+              <p className="text-gray-400 text-xs md:text-sm">{leaderboardData[0].score} point</p>
               <div className="mt-2 px-3 py-1 rounded-full bg-amber-500/10 text-xs text-amber-300 font-medium">
                 {leaderboardData[0].kort} kort
               </div>
@@ -98,12 +98,12 @@ function LeaderboardContent() {
 
             {/* 3rd place */}
             <div className="flex flex-col items-center pt-12">
-              <div className="w-18 h-18 w-[72px] h-[72px] rounded-full bg-gradient-to-br from-amber-700 to-orange-700 flex items-center justify-center text-2xl font-bold mb-3 ring-4 ring-amber-700/30">
+              <div className="w-12 h-12 md:w-[72px] md:h-[72px] rounded-full bg-gradient-to-br from-amber-700 to-orange-700 flex items-center justify-center text-lg md:text-2xl font-bold mb-2 md:mb-3 ring-4 ring-amber-700/30">
                 {leaderboardData[2].name.charAt(0)}
               </div>
-              <Medal className="w-7 h-7 text-amber-700 mb-1" />
-              <p className="font-bold text-lg">{leaderboardData[2].name}</p>
-              <p className="text-gray-400 text-sm">{leaderboardData[2].score} point</p>
+              <Medal className="w-5 h-5 md:w-7 md:h-7 text-amber-700 mb-1" />
+              <p className="font-bold text-sm md:text-lg">{leaderboardData[2].name}</p>
+              <p className="text-gray-400 text-xs md:text-sm">{leaderboardData[2].score} point</p>
               <div className="mt-2 px-3 py-1 rounded-full bg-amber-700/10 text-xs text-amber-600 font-medium">
                 {leaderboardData[2].kort} kort
               </div>
@@ -112,7 +112,7 @@ function LeaderboardContent() {
         </div>
 
         {/* Full leaderboard table */}
-        <div className="px-10 py-4 max-w-4xl">
+        <div className="px-4 md:px-10 py-4 max-w-4xl">
           <div className="space-y-2">
             {leaderboardData.map((entry) => (
               <div
@@ -135,12 +135,12 @@ function LeaderboardContent() {
                   <p className="font-semibold text-white">{entry.name}</p>
                 </div>
 
-                <div className="flex items-center gap-1 text-sm text-amber-400">
+                <div className="flex items-center gap-1 text-sm text-amber-400 hidden sm:flex">
                   <Flame className="w-4 h-4" />
                   <span>{entry.streak} dage</span>
                 </div>
 
-                <div className="flex items-center gap-1 text-sm text-blue-400 w-24 justify-end">
+                <div className="flex items-center gap-1 text-sm text-blue-400 w-20 md:w-24 justify-end">
                   <TrendingUp className="w-4 h-4" />
                   <span>{entry.kort} kort</span>
                 </div>

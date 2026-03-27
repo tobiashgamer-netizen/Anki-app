@@ -157,16 +157,16 @@ function MineKortContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
-      <main className="pl-64">
-        <div className="px-10 pt-10 pb-2">
-          <h1 className="text-4xl font-bold flex items-center gap-3">
-            <Layers className="w-9 h-9 text-blue-400" />
+      <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
+          <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-3">
+            <Layers className="w-7 h-7 md:w-9 md:h-9 text-blue-400" />
             Mine kort
           </h1>
-          <p className="mt-2 text-gray-400 text-lg">Administrer dine flashcards og decks</p>
+          <p className="mt-1 md:mt-2 text-gray-400 text-sm md:text-lg">Administrer dine flashcards og decks</p>
         </div>
 
-        <div className="px-10 py-6">
+        <div className="px-4 md:px-10 py-4 md:py-6">
           {/* Stats */}
           <div className="flex items-center gap-4 mb-6 text-sm text-gray-400">
             <span>{alleKort.length} kort i alt</span>
@@ -206,7 +206,7 @@ function MineKortContent() {
                 return (
                   <div key={deckName} className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
                     {/* Deck header */}
-                    <div className="flex items-center gap-2 px-6 py-4">
+                    <div className="flex items-center gap-2 px-4 md:px-6 py-3 md:py-4">
                       <button
                         onClick={() => toggleDeck(deckName)}
                         className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
@@ -236,8 +236,8 @@ function MineKortContent() {
                             <div key={kort.row} className="border-b border-white/5 last:border-b-0">
                               {isEditing ? (
                                 /* Edit mode */
-                                <div className="px-6 py-4 space-y-3 bg-white/[0.02]">
-                                  <div className="grid grid-cols-2 gap-3">
+                                <div className="px-4 md:px-6 py-4 space-y-3 bg-white/[0.02]">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
                                       <label className="text-xs text-gray-500 mb-1 block">Spørgsmål</label>
                                       <textarea
@@ -257,7 +257,7 @@ function MineKortContent() {
                                       />
                                     </div>
                                   </div>
-                                  <div className="flex gap-3 items-end">
+                                  <div className="flex flex-wrap gap-3 items-end">
                                     <div className="flex-1">
                                       <label className="text-xs text-gray-500 mb-1 block">Kategori</label>
                                       <select
@@ -310,7 +310,7 @@ function MineKortContent() {
                                 </div>
                               ) : (
                                 /* View mode */
-                                <div className="flex items-center gap-3 px-6 py-3.5 hover:bg-white/[0.02] transition-colors">
+                                <div className="flex items-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-3.5 hover:bg-white/[0.02] transition-colors">
                                   <div className={`w-7 h-7 rounded-md bg-gradient-to-br ${katColor(kort.category)} flex items-center justify-center flex-shrink-0`}>
                                     <Icon className="w-3.5 h-3.5 text-white" />
                                   </div>
