@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import { BookOpen, Eye, RotateCcw, ThumbsUp, ThumbsDown, Brain, ChevronRight, Scale, Briefcase, Shield, FolderOpen, Loader2, ArrowLeft, Layers } from "lucide-react";
 import { Suspense } from "react";
@@ -12,6 +12,7 @@ interface Flashcard {
   category?: string;
   user?: string;
   public?: boolean;
+  deckname?: string;
 }
 
 const kategorier = [
@@ -23,9 +24,13 @@ const kategorier = [
 
 function OevDigContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const bruger = searchParams.get("bruger") || "Bruger";
+  const deckParam = searchParams.get("deck");
+  const ownerParam = searchParams.get("owner");
 
   const [valgtKategori, setValgtKategori] = useState<string | null>(null);
+  const [deckMode, setDeckMode] = useState<string | null>(null);
   const [alleKort, setAlleKort] = useState<Flashcard[]>([]);
   const [kort, setKort] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(false);
@@ -35,6 +40,7 @@ function OevDigContent() {
   const [rigtige, setRigtige] = useState(0);
   const [forkerte, setForkerte] = useState(0);
   const [erFærdig, setErFærdig] = useState(false);
+  const deckStarted = useRef(false);
 
   // Fetch cards visible to this user (own cards + public cards)
   useEffect(() => {
@@ -53,6 +59,7 @@ function OevDigContent() {
               category: String(k.category || k.cat || ""),
               user: String(k.user || ""),
               public: k.public === true,
+              deckname: String(k.deckname || ""),
             }));
           setAlleKort(mapped);
         } else {
@@ -67,12 +74,31 @@ function OevDigContent() {
     fetchKort();
   }, [bruger]);
 
+  // Auto-start deck session when cards are loaded and deck param is present
+  useEffect(() => {
+    if (deckParam && ownerParam && alleKort.length > 0 && !deckStarted.current) {
+      deckStarted.current = true;
+      const deckCards = alleKort.filter(
+        (k) => k.deckname === deckParam && k.user === ownerParam
+      );
+      setKort(deckCards);
+      setDeckMode(deckParam);
+      setValgtKategori(null);
+      setNuværendeIndex(0);
+      setVisFlip(false);
+      setRigtige(0);
+      setForkerte(0);
+      setErFærdig(false);
+    }
+  }, [deckParam, ownerParam, alleKort]);
+
   const startSession = (kategoriId: string) => {
     const filtreret = alleKort.filter(
       (k) => (k.category || "").toLowerCase() === kategoriId.toLowerCase()
     );
     setKort(filtreret);
     setValgtKategori(kategoriId);
+    setDeckMode(null);
     setNuværendeIndex(0);
     setVisFlip(false);
     setRigtige(0);
@@ -82,6 +108,7 @@ function OevDigContent() {
 
   const tilbageTilMenu = () => {
     setValgtKategori(null);
+    setDeckMode(null);
     setKort([]);
     setNuværendeIndex(0);
     setVisFlip(false);
@@ -143,7 +170,7 @@ function OevDigContent() {
                 Prøv igen
               </button>
             </div>
-          ) : !valgtKategori ? (
+          ) : !valgtKategori && !deckMode ? (
             /* ===== KATEGORI MENU ===== */
             <>
               <div className="flex items-center gap-2 mb-6">
@@ -183,27 +210,66 @@ function OevDigContent() {
           ) : (
             /* ===== FLASHCARD SESSION ===== */
             <div className="max-w-2xl">
-              {/* Back button + category label */}
-              <button
-                onClick={tilbageTilMenu}
-                className="flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-6 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Tilbage til kategorier
-              </button>
+              {/* Back button + session label */}
+              <div className="flex items-center gap-3 mb-6">
+                {deckMode ? (
+                  <button
+                    onClick={() => router.push(`/mine-kort?bruger=${encodeURIComponent(bruger)}`)}
+                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Tilbage til Mine Kort
+                  </button>
+                ) : (
+                  <button
+                    onClick={tilbageTilMenu}
+                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Tilbage til kategorier
+                  </button>
+                )}
+              </div>
 
               <div className="flex items-center gap-2 mb-4">
-                <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-semibold">
-                  {valgtKategori}
-                </span>
-                <span className="text-sm text-gray-500">{total} kort</span>
+                {deckMode ? (
+                  <>
+                    <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-semibold flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5" />
+                      {deckMode}
+                    </span>
+                    <span className="text-sm text-gray-500">{total} kort</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-semibold">
+                      {valgtKategori}
+                    </span>
+                    <span className="text-sm text-gray-500">{total} kort</span>
+                  </>
+                )}
               </div>
 
               {total === 0 ? (
                 <div className="rounded-2xl bg-white/5 border border-white/10 p-10 text-center">
                   <BookOpen className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-400 mb-2">Ingen kort i denne kategori endnu.</p>
-                  <p className="text-sm text-gray-500">Opret kort under "Opret kort" for at komme i gang.</p>
+                  {deckMode ? (
+                    <>
+                      <p className="text-gray-400 mb-2">Dette deck er tomt. Tilføj kort før du kan øve.</p>
+                      <button
+                        onClick={() => router.push(`/mine-kort?bruger=${encodeURIComponent(bruger)}`)}
+                        className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 rounded-xl font-semibold transition text-sm"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        Tilbage til Mine Kort
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-gray-400 mb-2">Ingen kort i denne kategori endnu.</p>
+                      <p className="text-sm text-gray-500">Opret kort under &quot;Opret kort&quot; for at komme i gang.</p>
+                    </>
+                  )}
                 </div>
               ) : (
                 <>
@@ -228,7 +294,7 @@ function OevDigContent() {
                     <div className="rounded-2xl bg-white/5 border border-white/10 p-10 text-center backdrop-blur-sm">
                       <Brain className="w-16 h-16 text-purple-400 mx-auto mb-4" />
                       <h2 className="text-3xl font-bold mb-2">Session færdig!</h2>
-                      <p className="text-gray-400 mb-6">Du har gennemgået alle {total} kort i {valgtKategori}</p>
+                      <p className="text-gray-400 mb-6">Du har gennemgået alle {total} kort i {deckMode || valgtKategori}</p>
                       <div className="flex justify-center gap-8 mb-8">
                         <div className="text-center">
                           <p className="text-4xl font-bold text-emerald-400">{rigtige}</p>
@@ -251,13 +317,23 @@ function OevDigContent() {
                           <RotateCcw className="w-5 h-5" />
                           Prøv igen
                         </button>
-                        <button
-                          onClick={tilbageTilMenu}
-                          className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl font-semibold transition-all duration-200"
-                        >
-                          <ArrowLeft className="w-5 h-5" />
-                          Kategorier
-                        </button>
+                        {deckMode ? (
+                          <button
+                            onClick={() => router.push(`/mine-kort?bruger=${encodeURIComponent(bruger)}`)}
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl font-semibold transition-all duration-200"
+                          >
+                            <ArrowLeft className="w-5 h-5" />
+                            Tilbage til Mine Kort
+                          </button>
+                        ) : (
+                          <button
+                            onClick={tilbageTilMenu}
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl font-semibold transition-all duration-200"
+                          >
+                            <ArrowLeft className="w-5 h-5" />
+                            Kategorier
+                          </button>
+                        )}
                       </div>
                     </div>
                   ) : (

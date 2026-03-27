@@ -1,10 +1,10 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import {
   Layers, ChevronDown, ChevronRight, Pencil, Trash2, X, Check,
-  Loader2, Globe, Lock, Scale, Briefcase, Shield, FolderOpen, User,
+  Loader2, Globe, Lock, Scale, Briefcase, Shield, FolderOpen, User, BookOpen,
 } from "lucide-react";
 import { Suspense } from "react";
 import { hentAlleKort, redigerKort, sletKort } from "@/app/dashboard/actions";
@@ -34,6 +34,7 @@ const katColors: Record<string, string> = {
 function MineKortContent() {
   const searchParams = useSearchParams();
   const bruger = searchParams.get("bruger") || "Bruger";
+  const router = useRouter();
 
   const [alleKort, setAlleKort] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -194,17 +195,26 @@ function MineKortContent() {
                 return (
                   <div key={deckName} className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
                     {/* Deck header */}
-                    <button
-                      onClick={() => toggleDeck(deckName)}
-                      className="w-full flex items-center gap-3 px-6 py-4 hover:bg-white/5 transition-colors"
-                    >
-                      <Layers className="w-5 h-5 text-blue-400 flex-shrink-0" />
-                      <h2 className="text-lg font-bold flex-1 text-left">{deckName}</h2>
-                      <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300">
-                        {kortListe.length} kort
-                      </span>
-                      {erAaben ? <ChevronDown className="w-5 h-5 text-gray-400" /> : <ChevronRight className="w-5 h-5 text-gray-400" />}
-                    </button>
+                    <div className="flex items-center gap-2 px-6 py-4">
+                      <button
+                        onClick={() => toggleDeck(deckName)}
+                        className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+                      >
+                        <Layers className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                        <h2 className="text-lg font-bold flex-1 text-left truncate">{deckName}</h2>
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300">
+                          {kortListe.length} kort
+                        </span>
+                        {erAaben ? <ChevronDown className="w-5 h-5 text-gray-400" /> : <ChevronRight className="w-5 h-5 text-gray-400" />}
+                      </button>
+                      <button
+                        onClick={() => router.push(`/oev-dig?bruger=${encodeURIComponent(bruger)}&deck=${encodeURIComponent(deckName)}&owner=${encodeURIComponent(bruger)}`)}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-sm font-semibold transition-all flex-shrink-0"
+                      >
+                        <BookOpen className="w-4 h-4" />
+                        Øv dette deck
+                      </button>
+                    </div>
 
                     {erAaben && (
                       <div className="border-t border-white/5">
