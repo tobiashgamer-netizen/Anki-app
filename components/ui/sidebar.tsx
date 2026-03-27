@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useSearchParams, usePathname } from "next/navigation";
-import { Home, PlusCircle, BookOpen, Trophy, Settings, LogOut, User, Layers, Database, RotateCcw } from "lucide-react";
+import { Home, PlusCircle, BookOpen, Trophy, Settings, LogOut, User, Layers, Database, RotateCcw, ShieldCheck } from "lucide-react";
 
 const navItems = [
   { href: "/landing-page", label: "Hjem", icon: Home },
@@ -49,6 +49,19 @@ export function Sidebar() {
               </Link>
             );
           })}
+          {bruger === "admin" && (
+            <Link
+              href={buildHref("/admin")}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                pathname === "/admin"
+                  ? "bg-blue-600/20 text-blue-400 shadow-lg shadow-blue-500/10"
+                  : "text-amber-400/70 hover:text-amber-400 hover:bg-amber-500/10"
+              }`}
+            >
+              <ShieldCheck className="w-5 h-5" />
+              Admin Panel
+            </Link>
+          )}
         </nav>
       </div>
 

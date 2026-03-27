@@ -2,9 +2,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
-import { BookOpen, Eye, RotateCcw, Brain, ChevronRight, Scale, Briefcase, Shield, FolderOpen, Loader2, ArrowLeft, Layers, Flag, X, Star } from "lucide-react";
+import { BookOpen, Eye, RotateCcw, Brain, ChevronRight, Scale, Briefcase, Shield, FolderOpen, Loader2, ArrowLeft, Layers, Flag, X, Star, BadgeCheck } from "lucide-react";
 import { Suspense } from "react";
-import { hentAlleKort, rapporterFejl } from "@/app/dashboard/actions";
+import { hentAlleKort, rapporterFejl, logAnalytics } from "@/app/dashboard/actions";
 
 interface Flashcard {
   question: string;
@@ -14,6 +14,7 @@ interface Flashcard {
   user?: string;
   public?: boolean;
   deckname?: string;
+  verified?: boolean;
 }
 
 const kategorier = [
@@ -135,6 +136,7 @@ function OevDigContent() {
               user: String(k.user || ""),
               public: k.public === true,
               deckname: String(k.deckname || ""),
+              verified: k.verified === true,
             }));
           setAlleKort(mapped);
         } else {
@@ -200,6 +202,7 @@ function OevDigContent() {
   const handleSRS = (quality: 0 | 1 | 2) => {
     const currentCard = kort[nuværendeIndex];
     updateCardProgress(currentCard.question, quality);
+    logAnalytics({ user: bruger, question: currentCard.question, quality });
 
     if (quality === 0) setSværtCount((c) => c + 1);
     else if (quality === 1) setOkayCount((c) => c + 1);
@@ -494,6 +497,13 @@ function OevDigContent() {
                         <p className="text-2xl font-semibold text-center leading-relaxed max-w-md">
                           {visFlip ? nuværendeKort.answer : nuværendeKort.question}
                         </p>
+                        {/* Verified badge */}
+                        {nuværendeKort.verified && (
+                          <div className="flex items-center gap-1 mt-2 text-blue-400">
+                            <BadgeCheck className="w-4 h-4" />
+                            <span className="text-xs font-medium">Verificeret</span>
+                          </div>
+                        )}
                         {/* Show image below answer when flipped */}
                         {visFlip && nuværendeKort.imageURL && (
                           <img

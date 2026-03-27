@@ -156,3 +156,106 @@ export async function rapporterFejl(data: {
     return { success: false, error: "Netværksfejl" };
   }
 }
+
+export async function resolveError(data: {
+  question: string;
+  newQuestion?: string;
+  newAnswer?: string;
+}) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'resolveError', ...data }),
+      redirect: 'follow',
+    });
+    const result = await res.json();
+    return result;
+  } catch {
+    return { success: false, error: "Netværksfejl" };
+  }
+}
+
+export async function verifyCard(data: {
+  row: number;
+  verified: boolean;
+}) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'verifyCard', ...data }),
+      redirect: 'follow',
+    });
+    const result = await res.json();
+    return result;
+  } catch {
+    return { success: false, error: "Netværksfejl" };
+  }
+}
+
+export async function saveBroadcast(message: string) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveBroadcast', message }),
+      redirect: 'follow',
+    });
+    const result = await res.json();
+    return result;
+  } catch {
+    return { success: false, error: "Netværksfejl" };
+  }
+}
+
+export async function hentBroadcast() {
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getBroadcast`, { redirect: 'follow' });
+    const data = await res.json();
+    return { success: true, message: data.message || "" };
+  } catch {
+    return { success: false, message: "" };
+  }
+}
+
+export async function logActivity(user: string) {
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'logActivity', user }),
+      redirect: 'follow',
+    });
+  } catch { /* silent */ }
+}
+
+export async function hentActivity() {
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getActivity`, { redirect: 'follow' });
+    const data = await res.json();
+    return { success: true, activity: data };
+  } catch {
+    return { success: false, activity: [] };
+  }
+}
+
+export async function logAnalytics(data: {
+  user: string;
+  question: string;
+  quality: number;
+}) {
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'logAnalytics', ...data }),
+      redirect: 'follow',
+    });
+  } catch { /* silent */ }
+}
+
+export async function hentBlindSpot() {
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getBlindSpot`, { redirect: 'follow' });
+    const data = await res.json();
+    return { success: true, blindSpot: data };
+  } catch {
+    return { success: false, blindSpot: [] };
+  }
+}

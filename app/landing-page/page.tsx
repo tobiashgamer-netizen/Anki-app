@@ -4,11 +4,11 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import {
   BookOpen, PlusCircle, Trophy, Zap, Layers, Loader2,
-  Search, X, Eye, Database, Sparkles, Brain,
+  Search, X, Eye, Database, Sparkles, Brain, Megaphone, BadgeCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
-import { hentAlleKort } from "@/app/dashboard/actions";
+import { hentAlleKort, hentBroadcast, logActivity } from "@/app/dashboard/actions";
 
 interface Flashcard {
   row: number;
@@ -37,12 +37,19 @@ function DashboardContent() {
   const [previewFlipped, setPreviewFlipped] = useState(false);
   const [mestretCount, setMestretCount] = useState(0);
   const [officielleCount, setOfficielleCount] = useState(0);
+  const [broadcastMsg, setBroadcastMsg] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const result = await hentAlleKort(bruger);
+        const [result, broadRes] = await Promise.all([
+          hentAlleKort(bruger),
+          hentBroadcast(),
+        ]);
+        // Log activity
+        logActivity(bruger);
+        if (broadRes.success && broadRes.message) setBroadcastMsg(broadRes.message);
         if (result.success && Array.isArray(result.kort)) {
           const cards = result.kort as Flashcard[];
           setAlleKort(cards);
@@ -116,6 +123,16 @@ function DashboardContent() {
           </h1>
           <p className="mt-2 text-gray-400 text-lg">Klar til at lære noget nyt i dag?</p>
         </div>
+
+        {/* Broadcast Banner */}
+        {broadcastMsg && (
+          <div className="px-10 pt-4">
+            <div className="rounded-xl bg-gradient-to-r from-blue-500/10 to-amber-500/10 border border-amber-500/30 p-4 flex items-center gap-3">
+              <Megaphone className="w-5 h-5 text-amber-400 shrink-0" />
+              <p className="text-sm text-amber-200 font-medium">{broadcastMsg}</p>
+            </div>
+          </div>
+        )}
 
         {/* Global Search */}
         <div className="px-10 pt-4 pb-2">
