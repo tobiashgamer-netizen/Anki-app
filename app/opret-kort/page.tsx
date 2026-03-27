@@ -69,6 +69,7 @@ function OpretKortContent() {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
       <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="max-w-6xl mx-auto">
         <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
           <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-3">
             <PlusCircle className="w-7 h-7 md:w-9 md:h-9 text-blue-400" />
@@ -235,7 +236,7 @@ function OpretKortContent() {
           {(spoergsmaal || svar) && (
             <div className="mt-8">
               <h3 className="text-sm font-semibold text-gray-400 mb-3">Forhåndsvisning</h3>
-              <div className="rounded-2xl bg-gradient-to-br from-blue-600/10 to-purple-600/10 border border-white/10 p-6 space-y-4">
+              <div className="rounded-2xl bg-gradient-to-br from-blue-600/10 to-purple-600/10 border border-white/10 p-6 space-y-4 backdrop-blur-sm shadow-lg shadow-black/10">
                 <div>
                   <p className="text-xs text-blue-400 font-semibold uppercase tracking-wider mb-1">Forside</p>
                   <p className="text-white text-lg">{spoergsmaal || "..."}</p>
@@ -247,6 +248,7 @@ function OpretKortContent() {
               </div>
             </div>
           )}
+        </div>
         </div>
       </main>
     </div>

@@ -117,6 +117,29 @@ function OevDigContent() {
   // Lightbox state for image zoom
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
+  // Keyboard shortcuts: Space=flip, 1=Svært, 2=Okay, 3=Let
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      // Don't trigger when typing in input/textarea or modals are open
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (showReport || lightboxSrc) return;
+      if (erFærdig || !nuværendeKort) return;
+
+      if (e.code === "Space") {
+        e.preventDefault();
+        setVisFlip((v) => !v);
+      } else if (visFlip && e.key === "1") {
+        handleSRS(0);
+      } else if (visFlip && e.key === "2") {
+        handleSRS(1);
+      } else if (visFlip && e.key === "3") {
+        handleSRS(2);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  });
+
   // Fetch cards visible to this user (own cards + public cards)
   useEffect(() => {
     const fetchKort = async () => {
@@ -274,6 +297,7 @@ function OevDigContent() {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
       <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="max-w-6xl mx-auto">
         <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
           <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-3">
             <BookOpen className="w-7 h-7 md:w-9 md:h-9 text-purple-400" />
@@ -313,7 +337,7 @@ function OevDigContent() {
                       key={kat.id}
                       onClick={() => startSession(kat.id)}
                       disabled={antal === 0}
-                      className={`group relative text-left overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-6 transition-all duration-300 ${kat.bgHover} ${
+                      className={`group relative text-left overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-6 transition-all duration-300 backdrop-blur-sm ${kat.bgHover} ${
                         antal === 0 ? "opacity-40 cursor-not-allowed" : "hover:shadow-xl hover:scale-[1.02] cursor-pointer"
                       }`}
                     >
@@ -514,9 +538,12 @@ function OevDigContent() {
                           />
                         )}
                         {!visFlip && (
-                          <div className="mt-6 flex items-center gap-2 text-sm text-gray-500 group-hover:text-gray-300 transition-colors">
-                            <Eye className="w-4 h-4" />
-                            Klik for at se svaret
+                          <div className="mt-6 flex flex-col items-center gap-2">
+                            <div className="flex items-center gap-2 text-sm text-gray-500 group-hover:text-gray-300 transition-colors">
+                              <Eye className="w-4 h-4" />
+                              Klik for at se svaret
+                            </div>
+                            <span className="hidden md:block text-[10px] text-gray-600 font-mono">SPACE</span>
                           </div>
                         )}
                       </div>
@@ -571,24 +598,27 @@ function OevDigContent() {
                         <div className="mt-4 flex gap-2 md:gap-3">
                           <button
                             onClick={() => handleSRS(0)}
-                            className="flex-1 flex flex-col items-center justify-center gap-1 py-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 font-semibold transition-all duration-200"
+                            className="flex-1 flex flex-col items-center justify-center gap-1 py-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:scale-[1.03] font-semibold transition-all duration-200"
                           >
                             <span className="text-lg">Svært</span>
                             <span className="text-xs opacity-60">Vis igen snart</span>
+                            <span className="hidden md:block text-[10px] opacity-40 font-mono mt-1">1</span>
                           </button>
                           <button
                             onClick={() => handleSRS(1)}
-                            className="flex-1 flex flex-col items-center justify-center gap-1 py-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 font-semibold transition-all duration-200"
+                            className="flex-1 flex flex-col items-center justify-center gap-1 py-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 hover:scale-[1.03] font-semibold transition-all duration-200"
                           >
                             <span className="text-lg">Okay</span>
                             <span className="text-xs opacity-60">Vis igen senere</span>
+                            <span className="hidden md:block text-[10px] opacity-40 font-mono mt-1">2</span>
                           </button>
                           <button
                             onClick={() => handleSRS(2)}
-                            className="flex-1 flex flex-col items-center justify-center gap-1 py-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 font-semibold transition-all duration-200"
+                            className="flex-1 flex flex-col items-center justify-center gap-1 py-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 hover:scale-[1.03] font-semibold transition-all duration-200"
                           >
                             <span className="text-lg">Let</span>
                             <span className="text-xs opacity-60">Mestret!</span>
+                            <span className="hidden md:block text-[10px] opacity-40 font-mono mt-1">3</span>
                           </button>
                         </div>
                       )}
@@ -614,6 +644,7 @@ function OevDigContent() {
               )}
             </div>
           )}
+        </div>
         </div>
       </main>
     </div>

@@ -29,3 +29,27 @@ body {
 .safe-area-pb {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* Premium glass card base */
+.glass-card {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Subtle glow animation for featured elements */
+@keyframes subtle-glow {
+  0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.05); }
+  50% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.1); }
+}
+.animate-glow {
+  animation: subtle-glow 4s ease-in-out infinite;
+}
+
+/* Smooth card hover lift */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}

@@ -161,6 +161,7 @@ function AdminContent() {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
       <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="max-w-6xl mx-auto">
         <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
           <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-3">
             <ShieldCheck className="w-7 h-7 md:w-9 md:h-9 text-blue-400" />
@@ -475,6 +476,7 @@ function AdminContent() {
               )}
             </>
           )}
+        </div>
         </div>
       </main>
     </div>

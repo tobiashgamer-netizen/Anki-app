@@ -158,6 +158,7 @@ function MineKortContent() {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
       <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="max-w-6xl mx-auto">
         <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
           <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-3">
             <Layers className="w-7 h-7 md:w-9 md:h-9 text-blue-400" />
@@ -187,7 +188,7 @@ function MineKortContent() {
               </button>
             </div>
           ) : alleKort.length === 0 ? (
-            <div className="rounded-2xl bg-white/5 border border-white/10 p-10 text-center">
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-10 text-center backdrop-blur-sm shadow-lg shadow-black/10">
               <Layers className="w-12 h-12 text-gray-600 mx-auto mb-3" />
               <p className="text-gray-400 mb-2">Du har ingen kort endnu</p>
               <p className="text-sm text-gray-500 mb-5">Find et deck i Biblioteket for at komme i gang!</p>
@@ -204,7 +205,7 @@ function MineKortContent() {
               {Object.entries(grupperet).map(([deckName, kortListe]) => {
                 const erAaben = aabneDecks.has(deckName);
                 return (
-                  <div key={deckName} className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+                  <div key={deckName} className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden backdrop-blur-sm shadow-lg shadow-black/10">
                     {/* Deck header */}
                     <div className="flex items-center gap-2 px-4 md:px-6 py-3 md:py-4">
                       <button
@@ -375,6 +376,7 @@ function MineKortContent() {
               })}
             </div>
           )}
+        </div>
         </div>
       </main>
     </div>

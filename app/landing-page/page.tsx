@@ -117,6 +117,7 @@ function DashboardContent() {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
       <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="max-w-6xl mx-auto">
         <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
           <h1 className="text-2xl md:text-4xl font-bold">
             Velkommen tilbage, <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">{bruger}</span>!
@@ -179,7 +180,7 @@ function DashboardContent() {
             ))
           ) : (
             stats.map((stat) => (
-              <div key={stat.label} className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-5 backdrop-blur-sm">
+              <div key={stat.label} className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-5 backdrop-blur-sm shadow-lg shadow-black/10 card-hover">
                 <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${stat.color} opacity-10 rounded-bl-full`} />
                 <stat.icon className="w-6 h-6 text-gray-400 mb-3" />
                 <p className="text-2xl md:text-3xl font-bold">{stat.value}</p>
@@ -198,7 +199,7 @@ function DashboardContent() {
             </h2>
             <div
               onClick={() => openPreview(dagensKort)}
-              className="group cursor-pointer rounded-2xl bg-gradient-to-br from-amber-500/5 to-purple-500/5 border border-amber-500/20 hover:border-amber-500/40 p-8 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/5 max-w-2xl"
+              className="group cursor-pointer rounded-2xl bg-gradient-to-br from-amber-500/5 to-purple-500/5 border border-amber-500/20 hover:border-amber-500/40 p-8 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/5 max-w-2xl backdrop-blur-sm animate-glow"
             >
               <div className="flex items-center gap-2 mb-3">
                 <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold">Officielt deck</span>
@@ -220,7 +221,7 @@ function DashboardContent() {
               <Brain className="w-5 h-5 text-purple-400" />
               Viden-status
             </h2>
-            <div className="rounded-2xl bg-gradient-to-br from-purple-500/5 to-blue-500/5 border border-purple-500/20 p-6 max-w-2xl">
+            <div className="rounded-2xl bg-gradient-to-br from-purple-500/5 to-blue-500/5 border border-purple-500/20 p-6 max-w-2xl backdrop-blur-sm shadow-lg shadow-black/10">
               <p className="text-lg text-gray-200">
                 Du har mestret <span className="font-bold text-emerald-400">{mestretCount}</span> ud af <span className="font-bold text-blue-400">{officielleCount}</span> officielle kort
               </p>
@@ -246,7 +247,7 @@ function DashboardContent() {
               <Link
                 key={action.label}
                 href={action.href}
-                className="group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-6 hover:border-white/20 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5"
+                className="group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-6 hover:border-white/20 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5 backdrop-blur-sm hover:scale-[1.02]"
               >
                 <div className={`w-12 h-12 rounded-xl ${action.color} flex items-center justify-center mb-4 transition-transform group-hover:scale-110`}>
                   <action.icon className="w-6 h-6 text-white" />
@@ -307,6 +308,7 @@ function DashboardContent() {
             </div>
           </div>
         )}
+        </div>
       </main>
     </div>
   );

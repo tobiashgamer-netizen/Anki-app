@@ -182,7 +182,7 @@ function BibliotekContent() {
 
     return (
       <div
-        className={`rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl ${
+        className={`rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl backdrop-blur-sm hover:scale-[1.01] ${
           official
             ? "bg-blue-950/40 border-2 border-blue-500/30 hover:border-blue-400/50 hover:shadow-blue-500/10"
             : "bg-white/5 border border-white/10 hover:border-white/20 hover:shadow-blue-500/5"
@@ -318,6 +318,7 @@ function BibliotekContent() {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
       <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="max-w-6xl mx-auto">
         <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
           <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-3">
             <Database className="w-7 h-7 md:w-9 md:h-9 text-blue-400" />
@@ -419,6 +420,7 @@ function BibliotekContent() {
               )}
             </div>
           )}
+        </div>
         </div>
       </main>
     </div>

@@ -59,6 +59,7 @@ function LeaderboardContent() {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <Sidebar />
       <main className="pb-20 md:pb-0 md:pl-64">
+        <div className="max-w-6xl mx-auto">
         <div className="px-4 md:px-10 pt-6 md:pt-10 pb-2">
           <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-3">
             <Trophy className="w-7 h-7 md:w-9 md:h-9 text-amber-400" />
@@ -154,7 +155,7 @@ function LeaderboardContent() {
           </div>
 
           {/* Your rank card */}
-          <div className="mt-8 rounded-2xl bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/20 p-6 flex items-center gap-4">
+          <div className="mt-8 rounded-2xl bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/20 p-6 flex items-center gap-4 backdrop-blur-sm shadow-lg shadow-black/10">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-lg">
               {bruger.charAt(0).toUpperCase()}
             </div>
@@ -167,6 +168,7 @@ function LeaderboardContent() {
               <p className="text-sm text-gray-400">Opret kort for at komme på listen!</p>
             </div>
           </div>
+        </div>
         </div>
       </main>
     </div>
