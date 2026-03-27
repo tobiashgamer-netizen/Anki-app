@@ -46,7 +46,8 @@ function OversigtContent() {
       try {
         const result = await hentAlleKort();
         if (result.success && Array.isArray(result.kort)) {
-          const mapped: Flashcard[] = (result.kort as Flashcard[]).filter((k) => k.public !== false);
+          // Only show cards explicitly marked as public
+          const mapped: Flashcard[] = (result.kort as Flashcard[]).filter((k) => k.public === true);
           setAlleKort(mapped);
           setAabneKategorier(new Set(mapped.map((k) => k.category || "Andet")));
         } else {

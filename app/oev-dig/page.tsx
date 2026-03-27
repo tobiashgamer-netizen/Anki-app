@@ -10,6 +10,8 @@ interface Flashcard {
   question: string;
   answer: string;
   category?: string;
+  user?: string;
+  public?: boolean;
 }
 
 const kategorier = [
@@ -34,20 +36,24 @@ function OevDigContent() {
   const [forkerte, setForkerte] = useState(0);
   const [erFærdig, setErFærdig] = useState(false);
 
-  // Fetch all cards from Google Sheets via server action (avoids CORS)
+  // Fetch cards visible to this user (own cards + public cards)
   useEffect(() => {
     const fetchKort = async () => {
       setLoading(true);
       setFejl("");
       try {
-        const result = await hentAlleKort();
+        const result = await hentAlleKort(bruger);
         if (result.success && Array.isArray(result.kort)) {
-          // Map possible field names from Google Sheet to our interface
-          const mapped: Flashcard[] = result.kort.map((k: Record<string, string>) => ({
-            question: k.question || k.spørgsmål || k.spoergsmaal || k.q || "",
-            answer: k.answer || k.svar || k.a || "",
-            category: k.category || k.kategori || k.cat || "",
-          }));
+          // Only show public cards + own cards
+          const mapped: Flashcard[] = (result.kort as Record<string, unknown>[])
+            .filter((k) => k.public === true || k.user === bruger)
+            .map((k) => ({
+              question: String(k.question || k.q || ""),
+              answer: String(k.answer || k.a || ""),
+              category: String(k.category || k.cat || ""),
+              user: String(k.user || ""),
+              public: k.public === true,
+            }));
           setAlleKort(mapped);
         } else {
           setFejl("Kunne ikke hente kort fra Google Sheets. Prøv igen.");
@@ -59,7 +65,7 @@ function OevDigContent() {
       }
     };
     fetchKort();
-  }, []);
+  }, [bruger]);
 
   const startSession = (kategoriId: string) => {
     const filtreret = alleKort.filter(
