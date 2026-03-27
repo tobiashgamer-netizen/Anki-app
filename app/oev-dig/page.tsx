@@ -2,13 +2,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
-import { BookOpen, Eye, RotateCcw, ThumbsUp, ThumbsDown, Brain, ChevronRight, Scale, Briefcase, Shield, FolderOpen, Loader2, ArrowLeft, Layers, Flag } from "lucide-react";
+import { BookOpen, Eye, RotateCcw, ThumbsUp, ThumbsDown, Brain, ChevronRight, Scale, Briefcase, Shield, FolderOpen, Loader2, ArrowLeft, Layers, Flag, X } from "lucide-react";
 import { Suspense } from "react";
 import { hentAlleKort, rapporterFejl } from "@/app/dashboard/actions";
 
 interface Flashcard {
   question: string;
   answer: string;
+  imageURL?: string;
   category?: string;
   user?: string;
   public?: boolean;
@@ -48,6 +49,9 @@ function OevDigContent() {
   const [reportSending, setReportSending] = useState(false);
   const [reportSent, setReportSent] = useState(false);
 
+  // Lightbox state for image zoom
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+
   // Fetch cards visible to this user (own cards + public cards)
   useEffect(() => {
     const fetchKort = async () => {
@@ -62,6 +66,7 @@ function OevDigContent() {
             .map((k) => ({
               question: String(k.question || k.q || ""),
               answer: String(k.answer || k.a || ""),
+              imageURL: String(k.imageURL || ""),
               category: String(k.category || k.cat || ""),
               user: String(k.user || ""),
               public: k.public === true,
@@ -385,6 +390,15 @@ function OevDigContent() {
                         <p className="text-2xl font-semibold text-center leading-relaxed max-w-md">
                           {visFlip ? nuværendeKort.answer : nuværendeKort.question}
                         </p>
+                        {/* Show image below answer when flipped */}
+                        {visFlip && nuværendeKort.imageURL && (
+                          <img
+                            src={nuværendeKort.imageURL}
+                            alt="Kort billede"
+                            onClick={(e) => { e.stopPropagation(); setLightboxSrc(nuværendeKort.imageURL!); }}
+                            className="mt-4 max-h-48 rounded-lg border border-white/10 cursor-zoom-in hover:border-white/30 transition-all object-contain"
+                          />
+                        )}
                         {!visFlip && (
                           <div className="mt-6 flex items-center gap-2 text-sm text-gray-500 group-hover:text-gray-300 transition-colors">
                             <Eye className="w-4 h-4" />
@@ -425,6 +439,16 @@ function OevDigContent() {
                               </button>
                             </div>
                           </div>
+                        </div>
+                      )}
+
+                      {/* Lightbox for image zoom */}
+                      {lightboxSrc && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setLightboxSrc(null)}>
+                          <button onClick={() => setLightboxSrc(null)} className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition">
+                            <X className="w-6 h-6" />
+                          </button>
+                          <img src={lightboxSrc} alt="Forstørret billede" className="max-w-[90vw] max-h-[90vh] rounded-xl object-contain" />
                         </div>
                       )}
 

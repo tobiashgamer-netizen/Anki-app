@@ -6,6 +6,7 @@ import { Home, PlusCircle, BookOpen, Trophy, Settings, LogOut, User, Layers, Dat
 const navItems = [
   { href: "/landing-page", label: "Hjem", icon: Home },
   { href: "/opret-kort", label: "Opret kort", icon: PlusCircle },
+  { href: "/oev-dig", label: "Øv dig", icon: BookOpen },
   { href: "/mine-kort", label: "Mine kort", icon: Layers },
   { href: "/bibliotek", label: "Bibliotek", icon: Database },
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy },

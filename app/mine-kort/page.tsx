@@ -14,6 +14,7 @@ interface Flashcard {
   row: number;
   question: string;
   answer: string;
+  imageURL?: string;
   category: string;
   user: string;
   public: boolean;

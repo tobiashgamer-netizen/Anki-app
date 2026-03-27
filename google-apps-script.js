@@ -2,7 +2,7 @@
 // (Udvidelser → Apps Script → erstat alt → Gem → Deploy igen)
 //
 // Google Sheet "Kort" kolonner:
-// A=date, B=question, C=answer, D=category, E=owner, F=public, G=likes, H=deckname
+// A=date, B=question, C=imageURL, D=answer, E=category, F=owner, G=public, H=likes, I=deckname
 
 const SHEET_NAME = "Kort";
 
@@ -39,13 +39,14 @@ function doPost(e) {
 
     var now = new Date();
     var question = data.question || data.q || "";
+    var imageURL = data.imageURL || "";
     var answer = data.answer || data.a || "";
     var category = data.category || data.cat || "Andet";
     var user = data.user || data.owner || "";
     var isPublic = data.public !== undefined ? data.public : true;
     var deckname = data.deckname || "";
 
-    sheet.appendRow([now, question, answer, category, user, isPublic ? "true" : "false", 0, deckname]);
+    sheet.appendRow([now, question, imageURL, answer, category, user, isPublic ? "true" : "false", 0, deckname]);
 
     return ContentService
       .createTextOutput(JSON.stringify({ success: true }))
@@ -88,12 +89,13 @@ function getCards(params) {
       var card = {
         row: i + 1,
         question: row[1] || "",
-        answer: row[2] || "",
-        category: row[3] || "Andet",
-        user: row[4] || "",
-        public: String(row[5]).toLowerCase() === "true",
-        likes: Number(row[6]) || 0,
-        deckname: row[7] || "",
+        imageURL: row[2] || "",
+        answer: row[3] || "",
+        category: row[4] || "Andet",
+        user: row[5] || "",
+        public: String(row[6]).toLowerCase() === "true",
+        likes: Number(row[7]) || 0,
+        deckname: row[8] || "",
         error_report: errorMap[String(row[1] || "")] || null
       };
 
@@ -127,7 +129,7 @@ function editCard(data) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
-  var currentOwner = sheet.getRange(rowNum, 5).getValue();
+  var currentOwner = sheet.getRange(rowNum, 6).getValue();
   if (data.user && currentOwner !== data.user) {
     return ContentService
       .createTextOutput(JSON.stringify({ success: false, error: "Not authorized" }))
@@ -135,10 +137,11 @@ function editCard(data) {
   }
 
   if (data.question !== undefined) sheet.getRange(rowNum, 2).setValue(data.question);
-  if (data.answer !== undefined) sheet.getRange(rowNum, 3).setValue(data.answer);
-  if (data.category !== undefined) sheet.getRange(rowNum, 4).setValue(data.category);
-  if (data.public !== undefined) sheet.getRange(rowNum, 6).setValue(data.public ? "true" : "false");
-  if (data.deckname !== undefined) sheet.getRange(rowNum, 8).setValue(data.deckname);
+  if (data.imageURL !== undefined) sheet.getRange(rowNum, 3).setValue(data.imageURL);
+  if (data.answer !== undefined) sheet.getRange(rowNum, 4).setValue(data.answer);
+  if (data.category !== undefined) sheet.getRange(rowNum, 5).setValue(data.category);
+  if (data.public !== undefined) sheet.getRange(rowNum, 7).setValue(data.public ? "true" : "false");
+  if (data.deckname !== undefined) sheet.getRange(rowNum, 9).setValue(data.deckname);
 
   return ContentService
     .createTextOutput(JSON.stringify({ success: true }))
@@ -160,7 +163,7 @@ function deleteCard(data) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
-  var currentOwner = sheet.getRange(rowNum, 5).getValue();
+  var currentOwner = sheet.getRange(rowNum, 6).getValue();
   if (data.user && currentOwner !== data.user) {
     return ContentService
       .createTextOutput(JSON.stringify({ success: false, error: "Not authorized" }))
@@ -200,19 +203,20 @@ function copyDeck(data) {
 
   for (var i = 1; i < allData.length; i++) {
     var row = allData[i];
-    var rowDeck = String(row[7] || "");
-    var rowOwner = String(row[4] || "");
+    var rowDeck = String(row[8] || "");
+    var rowOwner = String(row[5] || "");
 
     if (rowDeck === sourceDeck && rowOwner === sourceOwner) {
       sheet.appendRow([
         now,
-        row[1] || "",   // question
-        row[2] || "",   // answer
-        row[3] || "Andet", // category
-        newOwner,        // new owner
-        "false",         // private by default
-        0,               // likes reset
-        newDeckname      // deck name
+        row[1] || "",      // question
+        row[2] || "",      // imageURL
+        row[3] || "",      // answer
+        row[4] || "Andet", // category
+        newOwner,           // new owner
+        "false",            // private by default
+        0,                  // likes reset
+        newDeckname         // deck name
       ]);
       copied++;
     }
@@ -272,9 +276,9 @@ function likeDeck(data) {
 
   for (var i = 1; i < allData.length; i++) {
     var row = allData[i];
-    if (String(row[7] || "") === deckname && String(row[4] || "") === deckOwner) {
-      var currentLikes = Number(row[6]) || 0;
-      sheet.getRange(i + 1, 7).setValue(currentLikes + 1);
+    if (String(row[8] || "") === deckname && String(row[5] || "") === deckOwner) {
+      var currentLikes = Number(row[7]) || 0;
+      sheet.getRange(i + 1, 8).setValue(currentLikes + 1);
       updated++;
       break; // Only increment first row of deck (represents deck likes)
     }
