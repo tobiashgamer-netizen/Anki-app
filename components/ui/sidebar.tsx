@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/ui/auth-provider";
-import { Home, PlusCircle, BookOpen, Trophy, LogOut, User, Layers, Database, RotateCcw, ShieldCheck, X, Settings } from "lucide-react";
+import { Home, PlusCircle, BookOpen, Trophy, LogOut, User, Layers, Database, RotateCcw, ShieldCheck, X, Settings, Lightbulb } from "lucide-react";
 
 const navItems = [
   { href: "/landing-page", label: "Hjem", icon: Home },
@@ -12,6 +12,7 @@ const navItems = [
   { href: "/mine-kort", label: "Mine kort", icon: Layers },
   { href: "/bibliotek", label: "Bibliotek", icon: Database },
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+  { href: "/feedback", label: "Giv Forslag", icon: Lightbulb },
 ];
 
 const mobileNavItems = [

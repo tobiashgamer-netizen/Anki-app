@@ -259,3 +259,60 @@ export async function hentBlindSpot() {
     return { success: false, blindSpot: [] };
   }
 }
+
+export async function sendFeedback(data: {
+  emne: string;
+  beskrivelse: string;
+  type: string;
+  user: string;
+}) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'addFeedback', ...data }),
+      redirect: 'follow',
+    });
+    const result = await res.json();
+    return result;
+  } catch {
+    return { success: false, error: "Netværksfejl" };
+  }
+}
+
+export async function hentFeedback() {
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getFeedback`, { redirect: 'follow' });
+    const data = await res.json();
+    return { success: true, feedback: data };
+  } catch {
+    return { success: false, feedback: [] };
+  }
+}
+
+export async function markFeedbackRead(row: number) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'markFeedbackRead', row }),
+      redirect: 'follow',
+    });
+    const result = await res.json();
+    return result;
+  } catch {
+    return { success: false, error: "Netværksfejl" };
+  }
+}
+
+export async function deleteFeedback(row: number) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'deleteFeedback', row }),
+      redirect: 'follow',
+    });
+    const result = await res.json();
+    return result;
+  } catch {
+    return { success: false, error: "Netværksfejl" };
+  }
+}

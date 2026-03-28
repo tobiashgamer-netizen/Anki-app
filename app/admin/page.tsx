@@ -5,12 +5,13 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/components/ui/auth-provider";
 import {
   ShieldCheck, AlertTriangle, BadgeCheck, Image, Brain, Users,
-  Megaphone, Loader2, Check, X, Save, Eye, Pencil,
+  Megaphone, Loader2, Check, X, Save, Eye, Pencil, Lightbulb, Trash2,
 } from "lucide-react";
 import { Suspense } from "react";
 import {
   hentAlleKort, resolveError, verifyCard as verifyCardAction,
   saveBroadcast, hentBroadcast, hentActivity, hentBlindSpot,
+  hentFeedback, markFeedbackRead, deleteFeedback,
 } from "@/app/dashboard/actions";
 
 interface Flashcard {
@@ -37,7 +38,17 @@ interface BlindSpotItem {
   count: number;
 }
 
-type Tab = "fejl" | "verificer" | "billeder" | "blindspot" | "aktivitet" | "broadcast";
+interface FeedbackItem {
+  row: number;
+  dato: string;
+  user: string;
+  emne: string;
+  beskrivelse: string;
+  type: string;
+  status: string;
+}
+
+type Tab = "fejl" | "verificer" | "billeder" | "blindspot" | "aktivitet" | "broadcast" | "forslag";
 
 function AdminContent() {
   const router = useRouter();
@@ -71,6 +82,10 @@ function AdminContent() {
   // Blind spot state
   const [blindSpot, setBlindSpot] = useState<BlindSpotItem[]>([]);
 
+  // Feedback state
+  const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
+  const [feedbackLoading, setFeedbackLoading] = useState<number | null>(null);
+
   // Verify toggling
   const [verifying, setVerifying] = useState<number | null>(null);
 
@@ -79,11 +94,12 @@ function AdminContent() {
     const fetchAll = async () => {
       setLoading(true);
       try {
-        const [cardsRes, broadRes, actRes, bsRes] = await Promise.all([
+        const [cardsRes, broadRes, actRes, bsRes, fbRes] = await Promise.all([
           hentAlleKort(),
           hentBroadcast(),
           hentActivity(),
           hentBlindSpot(),
+          hentFeedback(),
         ]);
         if (cardsRes.success && Array.isArray(cardsRes.kort)) {
           setAlleKort(cardsRes.kort as Flashcard[]);
@@ -91,6 +107,7 @@ function AdminContent() {
         if (broadRes.success) setBroadcastMsg(broadRes.message);
         if (actRes.success) setActivity(actRes.activity as ActivityRecord[]);
         if (bsRes.success) setBlindSpot(bsRes.blindSpot as BlindSpotItem[]);
+        if (fbRes.success) setFeedback(fbRes.feedback as FeedbackItem[]);
       } catch { /* silent */ } finally {
         setLoading(false);
       }
@@ -146,6 +163,20 @@ function AdminContent() {
     setBroadcastSaving(false);
   };
 
+  const handleMarkRead = async (item: FeedbackItem) => {
+    setFeedbackLoading(item.row);
+    await markFeedbackRead(item.row);
+    setFeedback((prev) => prev.map((f) => (f.row === item.row ? { ...f, status: "læst" } : f)));
+    setFeedbackLoading(null);
+  };
+
+  const handleDeleteFeedback = async (item: FeedbackItem) => {
+    setFeedbackLoading(item.row);
+    await deleteFeedback(item.row);
+    setFeedback((prev) => prev.filter((f) => f.row !== item.row));
+    setFeedbackLoading(null);
+  };
+
   if (rolle !== "admin") return null;
 
   const tabs: { id: Tab; label: string; icon: typeof ShieldCheck; count?: number }[] = [
@@ -155,6 +186,7 @@ function AdminContent() {
     { id: "blindspot", label: "Det Blinde Punkt", icon: Brain, count: blindSpot.length },
     { id: "aktivitet", label: "Aktivitet", icon: Users, count: activity.length },
     { id: "broadcast", label: "Dagens Parole", icon: Megaphone },
+    { id: "forslag", label: "Forslag fra holdet", icon: Lightbulb, count: feedback.filter((f) => f.status !== "læst").length },
   ];
 
   return (
@@ -471,6 +503,66 @@ function AdminContent() {
                         </div>
                       </div>
                     </div>
+                  )}
+                </div>
+              )}
+
+              {/* ===== FORSLAG FRA HOLDET ===== */}
+              {tab === "forslag" && (
+                <div className="max-w-4xl space-y-3">
+                  <p className="text-sm text-gray-400 mb-4">Forslag og feedback fra brugerne.</p>
+                  {feedback.length === 0 ? (
+                    <div className="rounded-2xl bg-white/5 border border-white/10 p-10 text-center">
+                      <Lightbulb className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                      <p className="text-gray-400">Ingen forslag endnu.</p>
+                    </div>
+                  ) : (
+                    feedback.map((item) => (
+                      <div
+                        key={item.row}
+                        className={`rounded-xl border p-5 transition ${
+                          item.status === "læst"
+                            ? "bg-white/[0.02] border-white/5 opacity-60"
+                            : "bg-white/5 border-amber-500/20"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <span className="text-xs font-medium text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">{item.type}</span>
+                              <span className="text-xs text-gray-500">{item.user}</span>
+                              <span className="text-xs text-gray-600">·</span>
+                              <span className="text-xs text-gray-500">{item.dato ? new Date(item.dato).toLocaleString("da-DK") : "—"}</span>
+                              {item.status === "læst" && (
+                                <span className="text-xs text-gray-600 bg-white/5 px-2 py-0.5 rounded">Læst</span>
+                              )}
+                            </div>
+                            <p className="text-sm font-semibold text-gray-200 mb-1">{item.emne}</p>
+                            <p className="text-sm text-gray-400 whitespace-pre-wrap">{item.beskrivelse}</p>
+                          </div>
+                          <div className="flex flex-col gap-2 shrink-0">
+                            {item.status !== "læst" && (
+                              <button
+                                onClick={() => handleMarkRead(item)}
+                                disabled={feedbackLoading === item.row}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600/20 text-blue-400 text-xs font-semibold hover:bg-blue-600/30 transition disabled:opacity-50"
+                              >
+                                {feedbackLoading === item.row ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+                                Sæt som læst
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDeleteFeedback(item)}
+                              disabled={feedbackLoading === item.row}
+                              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600/20 text-red-400 text-xs font-semibold hover:bg-red-600/30 transition disabled:opacity-50"
+                            >
+                              {feedbackLoading === item.row ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                              Slet
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
               )}

@@ -18,6 +18,7 @@ function doGet(e) {
   if (action === "getBroadcast") return getBroadcast();
   if (action === "getActivity") return getActivity();
   if (action === "getBlindSpot") return getBlindSpot();
+  if (action === "getFeedback") return getFeedback();
 
   return ContentService
     .createTextOutput(JSON.stringify({ status: "ok", message: "Scriptet er aktivt!" }))
@@ -40,6 +41,9 @@ function doPost(e) {
     if (action === "logActivity") return logActivity(data);
     if (action === "logAnalytics") return logAnalytics(data);
     if (action === "registerUser") return registerUser(data);
+    if (action === "addFeedback") return addFeedback(data);
+    if (action === "markFeedbackRead") return markFeedbackRead(data);
+    if (action === "deleteFeedback") return deleteFeedback_(data);
 
     // Default: addCard
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
@@ -562,6 +566,91 @@ function registerUser(data) {
 
   sheet.appendRow([username, hashedPassword, role, new Date()]);
 
+  return ContentService
+    .createTextOutput(JSON.stringify({ success: true }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ===== GENERAL FEEDBACK =====
+
+function getOrCreateFeedbackSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("GeneralFeedback");
+  if (!sheet) {
+    sheet = ss.insertSheet("GeneralFeedback");
+    sheet.appendRow(["Dato", "Bruger", "Emne", "Beskrivelse", "Type", "Status"]);
+  }
+  return sheet;
+}
+
+function addFeedback(data) {
+  var sheet = getOrCreateFeedbackSheet();
+  var user = data.user || "";
+  var emne = data.emne || "";
+  var beskrivelse = data.beskrivelse || "";
+  var type = data.type || "Andet";
+
+  if (!emne || !beskrivelse) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: "Missing fields" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  sheet.appendRow([new Date(), user, emne, beskrivelse, type, "ny"]);
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ success: true }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getFeedback() {
+  var sheet = getOrCreateFeedbackSheet();
+  if (sheet.getLastRow() < 2) {
+    return ContentService
+      .createTextOutput(JSON.stringify([]))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  var data = sheet.getDataRange().getValues();
+  var result = [];
+  for (var i = 1; i < data.length; i++) {
+    result.push({
+      row: i + 1,
+      dato: String(data[i][0] || ""),
+      user: String(data[i][1] || ""),
+      emne: String(data[i][2] || ""),
+      beskrivelse: String(data[i][3] || ""),
+      type: String(data[i][4] || ""),
+      status: String(data[i][5] || "ny")
+    });
+  }
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function markFeedbackRead(data) {
+  var sheet = getOrCreateFeedbackSheet();
+  var rowNum = data.row;
+  if (!rowNum || rowNum < 2) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: "Invalid row" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  sheet.getRange(rowNum, 6).setValue("læst");
+  return ContentService
+    .createTextOutput(JSON.stringify({ success: true }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function deleteFeedback_(data) {
+  var sheet = getOrCreateFeedbackSheet();
+  var rowNum = data.row;
+  if (!rowNum || rowNum < 2) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: "Invalid row" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  sheet.deleteRow(rowNum);
   return ContentService
     .createTextOutput(JSON.stringify({ success: true }))
     .setMimeType(ContentService.MimeType.JSON);
