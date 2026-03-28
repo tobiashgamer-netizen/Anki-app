@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
       success: true,
       bruger: user.username,
       rolle: user.role,
+      token,
     });
 
     response.cookies.set(sessionCookieOptions(token));

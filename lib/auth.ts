@@ -36,6 +36,12 @@ export async function getSession(): Promise<SessionPayload | null> {
   return verifyToken(token);
 }
 
+export async function getSessionFromHeader(req: Request): Promise<SessionPayload | null> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  return verifyToken(authHeader.slice(7));
+}
+
 export function sessionCookieOptions(token: string) {
   return {
     name: COOKIE_NAME,

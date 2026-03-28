@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
       success: true,
       bruger: username,
       rolle: "bruger",
+      token,
     });
 
     response.cookies.set(sessionCookieOptions(token));
