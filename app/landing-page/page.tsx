@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/components/ui/auth-provider";
 import {
-  BookOpen, PlusCircle, Trophy, Zap, Layers, Loader2,
-  Search, X, Eye, Database, Sparkles, Brain, Megaphone, BadgeCheck,
+  BookOpen, PlusCircle, Trophy, Zap, Layers,
+  Search, X, Eye, Database, Sparkles, Brain, Megaphone,
 } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
-import { hentAlleKort, hentBroadcast, logActivity } from "@/app/dashboard/actions";
+import { hentAlleKort, hentBroadcast, logActivity, hentLeaderboard, hentStreak } from "@/app/dashboard/actions";
 
 interface Flashcard {
   row: number;
@@ -37,18 +37,29 @@ function DashboardContent() {
   const [mestretCount, setMestretCount] = useState(0);
   const [officielleCount, setOfficielleCount] = useState(0);
   const [broadcastMsg, setBroadcastMsg] = useState("");
+  const [streak, setStreak] = useState(0);
+  const [rang, setRang] = useState("—");
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [result, broadRes] = await Promise.all([
+        const [result, broadRes, streakRes, lbRes] = await Promise.all([
           hentAlleKort(bruger),
           hentBroadcast(),
+          hentStreak(bruger),
+          hentLeaderboard(),
         ]);
         // Log activity
         logActivity(bruger);
         if (broadRes.success && broadRes.message) setBroadcastMsg(broadRes.message);
+        if (streakRes.success) setStreak(streakRes.streak);
+        // Compute rank from leaderboard
+        if (lbRes.success && Array.isArray(lbRes.leaderboard)) {
+          const entries = lbRes.leaderboard as { user: string; score: number }[];
+          const idx = entries.findIndex((e) => e.user.toLowerCase() === bruger.toLowerCase());
+          if (idx >= 0) setRang(`#${idx + 1}`);
+        }
         if (result.success && Array.isArray(result.kort)) {
           const cards = result.kort as Flashcard[];
           setAlleKort(cards);
@@ -72,7 +83,6 @@ function DashboardContent() {
 
   const totalKort = alleKort.length;
   const mineKort = alleKort.filter((k) => k.user === bruger).length;
-  const streak = Math.floor(Math.random() * 7) + 1; // mock streak
 
   const dagensKort = useMemo(() => {
     const officielle = alleKort.filter((k) =>
@@ -102,13 +112,14 @@ function DashboardContent() {
   const stats = [
     { label: "Kort i databasen", value: totalKort, icon: Database, color: "from-blue-500 to-blue-700" },
     { label: "Mine kort", value: mineKort, icon: Layers, color: "from-purple-500 to-purple-700" },
-    { label: "Streak", value: `${streak} dage`, icon: Zap, color: "from-amber-500 to-orange-600" },
-    { label: "Rang", value: "—", icon: Trophy, color: "from-emerald-500 to-green-700" },
+    { label: "Streak", value: streak > 0 ? `${streak} dage` : "Ingen endnu", icon: Zap, color: "from-amber-500 to-orange-600" },
+    { label: "Rang", value: rang, icon: Trophy, color: "from-emerald-500 to-green-700" },
   ];
 
   const quickActions = [
     { label: "Opret nyt kort", description: "Tilføj et flashcard til din samling", href: "/opret-kort", icon: PlusCircle, color: "bg-blue-600 hover:bg-blue-700" },
     { label: "Åbn biblioteket", description: "Find et deck og start en øvesession", href: "/bibliotek", icon: Database, color: "bg-purple-600 hover:bg-purple-700" },
+    { label: "Øv svære kort", description: "Træn de kort du har sværest ved", href: "/oev-dig?mode=hard", icon: Brain, color: "bg-red-600 hover:bg-red-700" },
     { label: "Se leaderboard", description: "Hvem har lavet flest kort?", href: "/leaderboard", icon: Trophy, color: "bg-emerald-600 hover:bg-emerald-700" },
   ];
 
@@ -241,7 +252,7 @@ function DashboardContent() {
             <Zap className="w-5 h-5 text-amber-400" />
             Hurtige handlinger
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
             {quickActions.map((action) => (
               <Link
                 key={action.label}

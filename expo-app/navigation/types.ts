@@ -1,14 +1,8 @@
+import type { NavigatorScreenParams } from "@react-navigation/native";
+
 export type RootStackParamList = {
   Login: undefined;
   MainTabs: undefined;
-};
-
-export type TabParamList = {
-  Hjem: undefined;
-  BibliotekStack: undefined;
-  "Mine kort": undefined;
-  Profil: undefined;
-  Mere: undefined;
 };
 
 export type MoreStackParamList = {
@@ -26,4 +20,12 @@ export type BibliotekStackParamList = {
     deckname?: string;
     owner?: string;
   };
+};
+
+export type TabParamList = {
+  Hjem: undefined;
+  BibliotekStack: NavigatorScreenParams<BibliotekStackParamList> | undefined;
+  "Mine kort": undefined;
+  Profil: undefined;
+  Mere: NavigatorScreenParams<MoreStackParamList> | undefined;
 };

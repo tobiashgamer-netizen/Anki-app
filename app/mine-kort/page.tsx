@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/components/ui/auth-provider";
 import {
   Layers, ChevronDown, ChevronRight, Pencil, Trash2, X, Check,
-  Loader2, Globe, Lock, Scale, Briefcase, Shield, FolderOpen, User, BookOpen, Database,
+  Loader2, Globe, Lock, Scale, Briefcase, Shield, FolderOpen, BookOpen, Database,
   AlertTriangle,
 } from "lucide-react";
 import { Suspense } from "react";
@@ -62,7 +62,7 @@ function MineKortContent() {
           (k) => k.user === bruger
         );
         setAlleKort(mine);
-        setAabneDecks(new Set(mine.map((k) => k.deckname || "Uden deck")));
+        setAabneDecks(new Set());
       } else {
         setFejl("Kunne ikke hente kort.");
       }

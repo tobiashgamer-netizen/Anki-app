@@ -7,14 +7,18 @@ import * as Haptics from "expo-haptics";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Layers, ChevronDown, ChevronRight, Pencil, Trash2, X, Check,
-  Globe, Lock, FolderOpen,
+  Globe, Lock, FolderOpen, PlusCircle,
 } from "lucide-react-native";
 import { useAuth } from "../contexts/AuthContext";
 import { hentAlleKort, redigerKort, sletKort } from "../lib/api";
 import type { Flashcard } from "../types";
+import { useNavigation } from "@react-navigation/native";
+import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import type { TabParamList } from "../navigation/types";
 
 export default function MyCardsScreen() {
   const { bruger } = useAuth();
+  const navigation = useNavigation<BottomTabNavigationProp<TabParamList, "Mine kort">>();
   const [kort, setKort] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -33,7 +37,7 @@ export default function MyCardsScreen() {
       if (result.success && Array.isArray(result.kort)) {
         const mine = (result.kort as Flashcard[]).filter((k) => k.user === bruger);
         setKort(mine);
-        setOpenDecks(new Set(mine.map((k) => k.deckname || "Uden deck")));
+        setOpenDecks(new Set());
       }
     } catch { /* */ } finally {
       setLoading(false);
@@ -122,7 +126,17 @@ export default function MyCardsScreen() {
       <View className="pt-4 px-4 pb-2 flex-row items-center">
         <Layers size={24} color="#60a5fa" />
         <Text className="text-white text-2xl font-bold ml-3">Mine kort</Text>
-        <Text className="text-gray-500 text-sm ml-auto">{kort.length} kort · {sections.length} decks</Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Mere", { screen: "OpretKort" })}
+          className="ml-auto bg-blue-600 rounded-xl px-3 py-1.5 flex-row items-center"
+          activeOpacity={0.7}
+        >
+          <PlusCircle size={14} color="#fff" />
+          <Text className="text-white text-xs font-semibold ml-1">Opret kort</Text>
+        </TouchableOpacity>
+      </View>
+      <View className="px-4 pb-2">
+        <Text className="text-gray-500 text-sm">{kort.length} kort · {sections.length} decks</Text>
       </View>
 
       {kort.length === 0 ? (

@@ -46,8 +46,8 @@ export default function LoginPage() {
       <div className="relative z-10 flex items-center justify-center w-full h-full p-4">
         <div className="w-full max-w-sm p-8 space-y-6 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-2xl">
           <div className="text-center">
-            <div className="w-14 h-14 mx-auto mb-3 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <span className="text-2xl font-bold text-white">A</span>
+            <div className="w-14 h-14 mx-auto mb-3 bg-amber-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30">
+              <span className="text-3xl">🪣</span>
             </div>
             <h2 className="text-3xl font-bold text-white">
               {mode === "login" ? "Velkommen tilbage" : "Opret konto"}
@@ -68,52 +68,46 @@ export default function LoginPage() {
             )}
 
             {/* Username */}
-            <div className="relative z-0">
+            <div>
+              <label htmlFor="floating_username" className="block text-sm text-gray-300 mb-1.5">
+                <span className="inline-block mr-1.5">👤</span>
+                Brugernavn
+              </label>
               <input
                 type="text"
                 id="floating_username"
-                className="block py-2.5 px-0 w-full text-sm text-white bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-500 peer"
-                placeholder=" "
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm"
+                placeholder="Indtast brugernavn"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={loading}
               />
-              <label
-                htmlFor="floating_username"
-                className="absolute text-sm text-gray-300 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-400 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-              >
-                <span className="inline-block mr-2 -mt-1">👤</span>
-                Brugernavn
-              </label>
             </div>
 
             {/* Password */}
-            <div className="relative z-0">
+            <div>
+              <label htmlFor="floating_password" className="block text-sm text-gray-300 mb-1.5">
+                <span className="inline-block mr-1.5">🔒</span>
+                Adgangskode{mode === "register" ? " (min. 6 tegn)" : ""}
+              </label>
               <input
                 type="password"
                 id="floating_password"
-                className="block py-2.5 px-0 w-full text-sm text-white bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-500 peer"
-                placeholder=" "
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm"
+                placeholder="Indtast adgangskode"
                 required
                 minLength={mode === "register" ? 6 : undefined}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
               />
-              <label
-                htmlFor="floating_password"
-                className="absolute text-sm text-gray-300 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-400 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-              >
-                <span className="inline-block mr-2 -mt-1">🔒</span>
-                Adgangskode{mode === "register" ? " (min. 6 tegn)" : ""}
-              </label>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="group w-full flex items-center justify-center py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 rounded-lg text-white font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500 transition-all duration-300"
+              className="group w-full flex items-center justify-center py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 rounded-xl text-white font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500 transition-all duration-300"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

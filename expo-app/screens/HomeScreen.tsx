@@ -11,10 +11,12 @@ import { hentAlleKort, hentBroadcast, logActivity } from "../lib/api";
 import { getSrsProgress } from "../lib/srs";
 import type { Flashcard } from "../types";
 import { useNavigation } from "@react-navigation/native";
+import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import type { TabParamList } from "../navigation/types";
 
 export default function HomeScreen() {
   const { bruger } = useAuth();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<BottomTabNavigationProp<TabParamList, "Hjem">>();
   const [kort, setKort] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -94,22 +96,6 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
-        {/* Stats */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4 -mx-1">
-          {[
-            { label: "Alle kort", value: kort.length, icon: <Layers size={16} color="#60a5fa" /> },
-            { label: "Mine kort", value: mineKort.length, icon: <BookOpen size={16} color="#a78bfa" /> },
-            { label: "Mestret", value: mastered, icon: <Brain size={16} color="#34d399" /> },
-            { label: "Officielle", value: officielle.length, icon: <BadgeCheck size={16} color="#60a5fa" /> },
-          ].map((stat) => (
-            <View key={stat.label} className="bg-white/5 border border-white/10 rounded-2xl p-4 mr-3 min-w-[110px]">
-              <View className="flex-row items-center mb-2">{stat.icon}</View>
-              <Text className="text-white text-xl font-bold">{stat.value}</Text>
-              <Text className="text-gray-500 text-xs mt-0.5">{stat.label}</Text>
-            </View>
-          ))}
-        </ScrollView>
-
         {/* Search */}
         <View className="bg-white/5 border border-white/10 rounded-2xl flex-row items-center px-4 py-3 mb-4">
           <Search size={16} color="#6b7280" />
@@ -135,6 +121,22 @@ export default function HomeScreen() {
             )}
           </View>
         ) : null}
+
+        {/* Stats */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4 -mx-1">
+          {[
+            { label: "Alle kort", value: kort.length, icon: <Layers size={16} color="#60a5fa" /> },
+            { label: "Mine kort", value: mineKort.length, icon: <BookOpen size={16} color="#a78bfa" /> },
+            { label: "Mestret", value: mastered, icon: <Brain size={16} color="#34d399" /> },
+            { label: "Officielle", value: officielle.length, icon: <BadgeCheck size={16} color="#60a5fa" /> },
+          ].map((stat) => (
+            <View key={stat.label} className="bg-white/5 border border-white/10 rounded-2xl p-4 mr-3 min-w-[110px]">
+              <View className="flex-row items-center mb-2">{stat.icon}</View>
+              <Text className="text-white text-xl font-bold">{stat.value}</Text>
+              <Text className="text-gray-500 text-xs mt-0.5">{stat.label}</Text>
+            </View>
+          ))}
+        </ScrollView>
 
         {/* Dagens Kort */}
         {dagensKort && !search.trim() ? (
@@ -180,7 +182,13 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
-        <View className="h-4" />
+        {/* Dagens Tip */}
+        {!search.trim() ? (
+          <View className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 mb-6">
+            <Text className="text-amber-400 text-xs font-semibold uppercase tracking-wide mb-1">💡 Dagens Tip</Text>
+            <Text className="text-gray-300 text-sm">Øv dig lidt hver dag — korte sessioner giver den bedste hukommelse!</Text>
+          </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

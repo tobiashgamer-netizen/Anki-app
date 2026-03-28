@@ -9,6 +9,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { hentAlleKort } from "../lib/api";
 import type { Flashcard } from "../types";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { BibliotekStackParamList } from "../navigation/types";
 
 const kategorier = [
   { id: "Jura", label: "Jura", icon: Scale, color: "#3b82f6" },
@@ -18,7 +19,7 @@ const kategorier = [
 ];
 
 type Props = {
-  navigation: NativeStackNavigationProp<any>;
+  navigation: NativeStackNavigationProp<BibliotekStackParamList, "BibliotekMain">;
 };
 
 export default function PracticeScreen({ navigation }: Props) {

@@ -213,16 +213,16 @@ export default function PracticeSessionScreen({ navigation, route }: Props) {
       </View>
 
       {/* Card */}
-      <View className="flex-1 px-4 justify-center">
+      <View className="flex-1 px-4 justify-center items-center">
         <TouchableOpacity
           onPress={doFlip}
           activeOpacity={0.95}
-          className="min-h-[280px]"
+          style={{ width: "100%", minHeight: 300 }}
         >
           {/* Front */}
           <Animated.View
             style={[frontStyle, { position: "absolute", width: "100%" }]}
-            className="bg-white/5 border border-white/10 rounded-3xl p-6 min-h-[280px] justify-center"
+            className="bg-white/5 border border-white/10 rounded-3xl p-8 min-h-[300px] justify-center"
           >
             {currentCard.verified && (
               <View className="flex-row items-center justify-center mb-3">
@@ -249,7 +249,7 @@ export default function PracticeSessionScreen({ navigation, route }: Props) {
           {/* Back */}
           <Animated.View
             style={[backStyle, { position: "absolute", width: "100%" }]}
-            className="bg-white/5 border border-blue-500/20 rounded-3xl p-6 min-h-[280px] justify-center"
+            className="bg-white/5 border border-blue-500/20 rounded-3xl p-8 min-h-[300px] justify-center"
           >
             <Text className="text-gray-200 text-base text-center leading-7">
               {currentCard.answer}

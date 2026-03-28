@@ -81,9 +81,10 @@ export default function LibraryScreen({ navigation }: Props) {
 
   const handleLike = async (deck: DeckGroup) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    await likeDeck({ deckname: deck.deckname, deckOwner: deck.owner });
+    const result = await likeDeck({ deckname: deck.deckname, deckOwner: deck.owner, user: bruger });
+    if (!result.success || result.alreadyLiked) return;
     setKort((prev) => prev.map((c) =>
-      c.deckname === deck.deckname && c.user === deck.owner ? { ...c, likes: c.likes + 1 } : c
+      c.deckname === deck.deckname && c.user === deck.owner ? { ...c, likes: c.likes + 1, likedBy: [...(c.likedBy || []), bruger] } : c
     ));
   };
 
@@ -95,6 +96,7 @@ export default function LibraryScreen({ navigation }: Props) {
   const renderDeck = (deck: DeckGroup) => {
     const key = `${deck.deckname}|${deck.owner}`;
     const isExpanded = expandedDeck === key;
+    const isLiked = deck.cards.some((card) => Array.isArray(card.likedBy) && card.likedBy.includes(bruger));
     return (
       <View key={key} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden mb-3">
         <TouchableOpacity
@@ -109,6 +111,15 @@ export default function LibraryScreen({ navigation }: Props) {
             </View>
             <Text className="text-gray-500 text-xs mt-0.5">{deck.owner} · {deck.cards.length} kort · {deck.likes} ❤️</Text>
           </View>
+          {!isExpanded && (
+            <TouchableOpacity
+              onPress={(e) => { e.stopPropagation?.(); handlePractice(deck); }}
+              className="bg-emerald-600/20 rounded-xl p-2 mr-2"
+              activeOpacity={0.7}
+            >
+              <Play size={16} color="#34d399" />
+            </TouchableOpacity>
+          )}
           {isExpanded ? <ChevronUp size={18} color="#6b7280" /> : <ChevronDown size={18} color="#6b7280" />}
         </TouchableOpacity>
 
@@ -140,9 +151,10 @@ export default function LibraryScreen({ navigation }: Props) {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => handleLike(deck)}
+                disabled={isLiked}
                 className="bg-pink-600/20 border border-pink-500/30 rounded-xl py-2.5 px-3 flex-row items-center justify-center"
               >
-                <Heart size={14} color="#f472b6" />
+                <Heart size={14} color={isLiked ? "#fb7185" : "#f472b6"} fill={isLiked ? "#fb7185" : "transparent"} />
               </TouchableOpacity>
             </View>
           </View>

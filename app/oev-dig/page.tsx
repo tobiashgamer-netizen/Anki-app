@@ -94,9 +94,11 @@ function OevDigContent() {
   const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
   const deckParam = searchParams.get("deck");
   const ownerParam = searchParams.get("owner");
+  const modeParam = searchParams.get("mode");
 
   const [valgtKategori, setValgtKategori] = useState<string | null>(null);
   const [deckMode, setDeckMode] = useState<string | null>(null);
+  const [specialMode, setSpecialMode] = useState<"hard" | null>(null);
   const [alleKort, setAlleKort] = useState<Flashcard[]>([]);
   const [kort, setKort] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(false);
@@ -194,6 +196,23 @@ function OevDigContent() {
     }
   }, [deckParam, ownerParam, alleKort]);
 
+  useEffect(() => {
+    if (modeParam === "hard" && alleKort.length > 0 && !deckStarted.current) {
+      deckStarted.current = true;
+      const hardCards = alleKort.filter((k) => getCardLevel(k.question) === 0);
+      setKort(sortByReviewPriority(hardCards));
+      setSpecialMode("hard");
+      setDeckMode(null);
+      setValgtKategori(null);
+      setNuværendeIndex(0);
+      setVisFlip(false);
+      setSværtCount(0);
+      setOkayCount(0);
+      setLetCount(0);
+      setErFærdig(false);
+    }
+  }, [modeParam, alleKort]);
+
   const startSession = (kategoriId: string) => {
     const filtreret = alleKort.filter(
       (k) => (k.category || "").toLowerCase() === kategoriId.toLowerCase()
@@ -201,6 +220,7 @@ function OevDigContent() {
     setKort(sortByReviewPriority(filtreret));
     setValgtKategori(kategoriId);
     setDeckMode(null);
+    setSpecialMode(null);
     setNuværendeIndex(0);
     setVisFlip(false);
     setSværtCount(0);
@@ -212,6 +232,7 @@ function OevDigContent() {
   const tilbageTilMenu = () => {
     setValgtKategori(null);
     setDeckMode(null);
+    setSpecialMode(null);
     setKort([]);
     setNuværendeIndex(0);
     setVisFlip(false);
@@ -251,6 +272,8 @@ function OevDigContent() {
     let baseCards: Flashcard[];
     if (deckMode) {
       baseCards = alleKort.filter((k) => k.deckname === deckMode && k.user === (ownerParam || ""));
+    } else if (specialMode === "hard") {
+      baseCards = alleKort.filter((k) => getCardLevel(k.question) === 0);
     } else if (valgtKategori) {
       baseCards = alleKort.filter((k) => (k.category || "").toLowerCase() === valgtKategori.toLowerCase());
     } else {
@@ -323,7 +346,7 @@ function OevDigContent() {
                 Prøv igen
               </button>
             </div>
-          ) : !valgtKategori && !deckMode ? (
+          ) : !valgtKategori && !deckMode && !specialMode ? (
             /* ===== KATEGORI MENU ===== */
             <>
               <div className="flex items-center gap-2 mb-6">
@@ -373,6 +396,14 @@ function OevDigContent() {
                     <ArrowLeft className="w-4 h-4" />
                     Tilbage til Mine Kort
                   </button>
+                ) : specialMode ? (
+                  <button
+                    onClick={tilbageTilMenu}
+                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Tilbage til oversigten
+                  </button>
                 ) : (
                   <button
                     onClick={tilbageTilMenu}
@@ -390,6 +421,14 @@ function OevDigContent() {
                     <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-semibold flex items-center gap-1.5">
                       <Layers className="w-3.5 h-3.5" />
                       {deckMode}
+                    </span>
+                    <span className="text-sm text-gray-500">{total} kort</span>
+                  </>
+                ) : specialMode === "hard" ? (
+                  <>
+                    <span className="px-3 py-1 rounded-full bg-red-500/20 text-red-300 text-xs font-semibold flex items-center gap-1.5">
+                      <Brain className="w-3.5 h-3.5" />
+                      Svære kort
                     </span>
                     <span className="text-sm text-gray-500">{total} kort</span>
                   </>
@@ -416,6 +455,11 @@ function OevDigContent() {
                         <ArrowLeft className="w-4 h-4" />
                         Tilbage til Mine Kort
                       </button>
+                    </>
+                  ) : specialMode === "hard" ? (
+                    <>
+                      <p className="text-gray-400 mb-2">Du har ingen svære kort lige nu.</p>
+                      <p className="text-sm text-gray-500">Marker nogle kort som &quot;Svært&quot; under øvning for at bygge denne liste op.</p>
                     </>
                   ) : (
                     <>
@@ -448,7 +492,7 @@ function OevDigContent() {
                     <div className="rounded-2xl bg-white/5 border border-white/10 p-10 text-center backdrop-blur-sm">
                       <Brain className="w-16 h-16 text-purple-400 mx-auto mb-4" />
                       <h2 className="text-3xl font-bold mb-2">Session færdig!</h2>
-                      <p className="text-gray-400 mb-6">Du har gennemgået alle kort i {deckMode || valgtKategori}</p>
+                      <p className="text-gray-400 mb-6">Du har gennemgået alle kort i {deckMode || valgtKategori || (specialMode === "hard" ? "svære kort" : "denne session")}</p>
                       <div className="flex justify-center gap-8 mb-8">
                         <div className="text-center">
                           <p className="text-4xl font-bold text-red-400">{sværtCount}</p>

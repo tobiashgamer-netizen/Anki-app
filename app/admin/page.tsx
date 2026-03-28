@@ -209,24 +209,26 @@ function AdminContent() {
         </div>
 
         {/* Tabs */}
-        <div className="px-4 md:px-10 pt-4 pb-2 flex gap-2 overflow-x-auto">
+        <div className="px-4 md:px-10 pt-4 pb-2">
+          <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+              className={`flex flex-col items-center gap-1 px-2 py-2.5 rounded-xl text-xs font-medium transition-all ${
                 tab === t.id
                   ? "bg-blue-600/20 text-blue-400 border border-blue-500/30"
                   : "bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10"
               }`}
             >
               <t.icon className="w-4 h-4" />
-              {t.label}
-              {t.count !== undefined && (
-                <span className="ml-1 px-1.5 py-0.5 rounded-full bg-white/10 text-xs">{t.count}</span>
+              <span className="truncate w-full text-center">{t.label}</span>
+              {t.count !== undefined && t.count > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full bg-white/10 text-[10px]">{t.count}</span>
               )}
             </button>
           ))}
+          </div>
         </div>
 
         <div className="px-4 md:px-10 py-4 md:py-6">

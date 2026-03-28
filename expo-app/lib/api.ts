@@ -108,7 +108,7 @@ export async function kopierDeck(data: {
   return scriptPost({ action: "copyDeck", ...data });
 }
 
-export async function likeDeck(data: { deckname: string; deckOwner: string }) {
+export async function likeDeck(data: { deckname: string; deckOwner: string; user: string }) {
   return scriptPost({ action: "likeDeck", ...data });
 }
 
@@ -154,6 +154,11 @@ export async function hentActivity() {
   const data = await scriptGet({ action: "getActivity" });
   // GAS returns raw array
   return { success: true, activity: Array.isArray(data) ? data as ActivityRecord[] : [] };
+}
+
+export async function hentStreak(user: string) {
+  const data = await scriptGet({ action: "getStreak", user });
+  return { success: true, streak: Number(data?.streak) || 0 };
 }
 
 // Analytics

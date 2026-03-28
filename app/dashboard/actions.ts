@@ -125,6 +125,7 @@ export async function kopierDeck(data: {
 export async function likeDeck(data: {
   deckname: string;
   deckOwner: string;
+  user: string;
 }) {
   try {
     const res = await fetch(SCRIPT_URL, {
@@ -233,6 +234,16 @@ export async function hentActivity() {
     return { success: true, activity: data };
   } catch {
     return { success: false, activity: [] };
+  }
+}
+
+export async function hentStreak(user: string) {
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getStreak&user=${encodeURIComponent(user)}`, { redirect: 'follow' });
+    const data = await res.json();
+    return { success: true, streak: Number(data?.streak) || 0 };
+  } catch {
+    return { success: false, streak: 0 };
   }
 }
 

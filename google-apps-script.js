@@ -2,7 +2,7 @@
 // (Udvidelser → Apps Script → erstat alt → Gem → Deploy igen)
 //
 // Google Sheet "Kort" kolonner:
-// A=date, B=question, C=imageURL, D=answer, E=category, F=owner, G=public, H=likes, I=deckname, J=verified
+// A=date, B=question, C=imageURL, D=answer, E=category, F=owner, G=public, H=likes, I=deckname, J=verified, K=likedBy(JSON)
 //
 // Google Sheet "Brugere" (Users) kolonner:
 // A=username, B=hashedPassword, C=role, D=createdAt
@@ -20,6 +20,7 @@ function doGet(e) {
   if (action === "getBlindSpot") return getBlindSpot();
   if (action === "getFeedback") return getFeedback();
   if (action === "getLeaderboard") return getLeaderboard();
+  if (action === "getStreak") return getStreak(e.parameter);
   if (action === "getAvatar") return getAvatar(e.parameter);
 
   return ContentService
@@ -65,7 +66,7 @@ function doPost(e) {
     var isPublic = data.public !== undefined ? data.public : true;
     var deckname = data.deckname || "";
 
-    sheet.appendRow([now, question, imageURL, answer, category, user, isPublic ? "true" : "false", 0, deckname, ""]);
+    sheet.appendRow([now, question, imageURL, answer, category, user, isPublic ? "true" : "false", 0, deckname, "", "[]"]);
 
     return ContentService
       .createTextOutput(JSON.stringify({ success: true }))
@@ -116,6 +117,7 @@ function getCards(params) {
         likes: Number(row[7]) || 0,
         deckname: row[8] || "",
         verified: String(row[9]).toLowerCase() === "true",
+        likedBy: parseJsonArray(row[10]),
         error_report: errorMap[String(row[1] || "")] || null
       };
 
@@ -237,7 +239,8 @@ function copyDeck(data) {
         "false",            // private by default
         0,                  // likes reset
         newDeckname,         // deck name
-        ""                   // verified
+        "",                  // verified
+        "[]"                 // likedBy
       ]);
       copied++;
     }
@@ -274,7 +277,18 @@ function reportError(data) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// Like a deck: increment likes on all cards in the deck
+function parseJsonArray(value) {
+  if (!value) return [];
+  if (Object.prototype.toString.call(value) === "[object Array]") return value;
+  try {
+    var parsed = JSON.parse(String(value));
+    return Object.prototype.toString.call(parsed) === "[object Array]" ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+// Like a deck: increment likes on all cards in the deck once per user
 function likeDeck(data) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
   if (!sheet) {
@@ -285,8 +299,9 @@ function likeDeck(data) {
 
   var deckname = data.deckname;
   var deckOwner = data.deckOwner;
+  var user = data.user;
 
-  if (!deckname || !deckOwner) {
+  if (!deckname || !deckOwner || !user) {
     return ContentService
       .createTextOutput(JSON.stringify({ success: false, error: "Missing parameters" }))
       .setMimeType(ContentService.MimeType.JSON);
@@ -299,7 +314,15 @@ function likeDeck(data) {
     var row = allData[i];
     if (String(row[8] || "") === deckname && String(row[5] || "") === deckOwner) {
       var currentLikes = Number(row[7]) || 0;
+      var likedBy = parseJsonArray(row[10]);
+      if (likedBy.indexOf(user) !== -1) {
+        return ContentService
+          .createTextOutput(JSON.stringify({ success: true, alreadyLiked: true, likes: currentLikes, likedBy: likedBy }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      likedBy.push(user);
       sheet.getRange(i + 1, 8).setValue(currentLikes + 1);
+      sheet.getRange(i + 1, 11).setValue(JSON.stringify(likedBy));
       updated++;
       break; // Only increment first row of deck (represents deck likes)
     }
@@ -413,13 +436,13 @@ function getBroadcast() {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// Log user activity (last seen)
+// Log user activity once per user per day while preserving history for streaks.
 function logActivity(data) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var aSheet = ss.getSheetByName("Activity");
   if (!aSheet) {
     aSheet = ss.insertSheet("Activity");
-    aSheet.appendRow(["Bruger", "Sidst set"]);
+    aSheet.appendRow(["Bruger", "Sidst set", "Dag"]);
   }
   var user = data.user || "";
   if (!user) {
@@ -427,24 +450,26 @@ function logActivity(data) {
       .createTextOutput(JSON.stringify({ success: false }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+  var now = new Date();
+  var dayKey = Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyy-MM-dd");
   var allData = aSheet.getDataRange().getValues();
-  var found = false;
   for (var i = 1; i < allData.length; i++) {
-    if (String(allData[i][0]) === user) {
-      aSheet.getRange(i + 1, 2).setValue(new Date());
-      found = true;
-      break;
+    var existingUser = String(allData[i][0] || "");
+    var existingDay = String(allData[i][2] || "");
+    if (existingUser === user && existingDay === dayKey) {
+      aSheet.getRange(i + 1, 2).setValue(now);
+      return ContentService
+        .createTextOutput(JSON.stringify({ success: true }))
+        .setMimeType(ContentService.MimeType.JSON);
     }
   }
-  if (!found) {
-    aSheet.appendRow([user, new Date()]);
-  }
+  aSheet.appendRow([user, now, dayKey]);
   return ContentService
     .createTextOutput(JSON.stringify({ success: true }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// Get all activity records
+// Get latest activity per user for the admin panel.
 function getActivity() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var aSheet = ss.getSheetByName("Activity");
@@ -454,12 +479,72 @@ function getActivity() {
       .setMimeType(ContentService.MimeType.JSON);
   }
   var data = aSheet.getDataRange().getValues();
-  var result = [];
+  var latestByUser = {};
   for (var i = 1; i < data.length; i++) {
-    result.push({ user: String(data[i][0] || ""), lastSeen: String(data[i][1] || "") });
+    var user = String(data[i][0] || "");
+    var lastSeen = String(data[i][1] || "");
+    if (!user) continue;
+    if (!latestByUser[user] || new Date(lastSeen) > new Date(latestByUser[user])) {
+      latestByUser[user] = lastSeen;
+    }
   }
+  var result = [];
+  for (var userKey in latestByUser) {
+    result.push({ user: userKey, lastSeen: latestByUser[userKey] });
+  }
+  result.sort(function (a, b) {
+    return new Date(b.lastSeen) - new Date(a.lastSeen);
+  });
   return ContentService
     .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getStreak(params) {
+  var user = params && params.user ? String(params.user) : "";
+  if (!user) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, streak: 0 }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var aSheet = ss.getSheetByName("Activity");
+  if (!aSheet || aSheet.getLastRow() < 2) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: true, streak: 0 }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var data = aSheet.getDataRange().getValues();
+  var dayMap = {};
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0] || "") !== user) continue;
+    var dayKey = String(data[i][2] || "");
+    if (!dayKey && data[i][1]) {
+      dayKey = Utilities.formatDate(new Date(data[i][1]), Session.getScriptTimeZone(), "yyyy-MM-dd");
+    }
+    if (dayKey) dayMap[dayKey] = true;
+  }
+
+  var streak = 0;
+  var today = new Date();
+  for (var offset = 0; offset < 365; offset++) {
+    var date = new Date(today);
+    date.setDate(today.getDate() - offset);
+    var key = Utilities.formatDate(date, Session.getScriptTimeZone(), "yyyy-MM-dd");
+    if (dayMap[key]) {
+      streak++;
+      continue;
+    }
+    if (offset === 0) {
+      break;
+    }
+    break;
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ success: true, streak: streak >= 2 ? streak : 0 }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 

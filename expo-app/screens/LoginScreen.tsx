@@ -81,10 +81,10 @@ export default function LoginScreen() {
         >
           {/* Logo */}
           <View className="items-center mb-10">
-            <View className="bg-blue-600 w-16 h-16 rounded-2xl items-center justify-center mb-4 shadow-lg">
-              <Text className="text-white font-bold text-2xl">A</Text>
+            <View className="bg-amber-500 w-16 h-16 rounded-2xl items-center justify-center mb-4 shadow-lg">
+              <Text className="text-3xl">🪣</Text>
             </View>
-            <Text className="text-white text-3xl font-bold tracking-tight">Anki Pro</Text>
+            <Text className="text-white text-3xl font-bold tracking-tight">Den Gule Spand</Text>
             <Text className="text-gray-400 text-sm mt-1">Til Politiholdet</Text>
           </View>
 

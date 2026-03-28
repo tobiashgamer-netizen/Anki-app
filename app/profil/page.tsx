@@ -10,6 +10,7 @@ import {
   Gamepad2, Music, Palette, Camera, Compass, Anchor,
   Plane, Car, Bike, Globe, Map, Coffee, Pizza, Cake,
   Gift, Bell, Headphones, Swords, Wand2, Dices,
+  ChevronDown, ChevronRight,
 } from "lucide-react";
 import { Suspense } from "react";
 import { hentAvatar, setAvatar, hentLeaderboard } from "@/app/dashboard/actions";
@@ -78,6 +79,7 @@ function ProfileContent() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showPicker, setShowPicker] = useState(false);
 
   // Stats
   const [rank, setRank] = useState(0);
@@ -180,10 +182,20 @@ function ProfileContent() {
 
               {/* Avatar picker */}
               <div className="px-4 md:px-10 py-6">
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <button
+                  onClick={() => setShowPicker(!showPicker)}
+                  className="text-lg font-semibold mb-4 flex items-center gap-2 hover:opacity-80 transition"
+                >
                   <Sparkles className="w-5 h-5 text-amber-400" />
                   Vælg avatar
-                </h3>
+                  {showPicker ? (
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
+                {showPicker && (
+                <>
                 <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
                   {AVATAR_ICONS.map((avatar) => {
                     const AIcon = avatar.icon;
@@ -219,6 +231,8 @@ function ProfileContent() {
                     )}
                     {saved ? "Gemt!" : "Gem avatar"}
                   </button>
+                )}
+                </>
                 )}
               </div>
 

@@ -21,6 +21,7 @@ interface Flashcard {
   public: boolean;
   likes: number;
   deckname: string;
+  likedBy?: string[];
   error_report?: string | null;
 }
 
@@ -70,6 +71,12 @@ function BibliotekContent() {
         if (result.success && Array.isArray(result.kort)) {
           const pub = (result.kort as Flashcard[]).filter((k) => k.public === true);
           setAlleKort(pub);
+          const initiallyLiked = new Set(
+            pub
+              .filter((k) => Array.isArray(k.likedBy) && k.likedBy.includes(bruger))
+              .map((k) => `${k.deckname}|||${k.user}`)
+          );
+          setLikedDecks(initiallyLiked);
         } else {
           setFejl("Kunne ikke hente kort fra Google Sheets.");
         }
@@ -80,7 +87,7 @@ function BibliotekContent() {
       }
     };
     fetchKort();
-  }, []);
+  }, [bruger]);
 
   const decks = useMemo(() => {
     const map: Record<string, Deck> = {};
@@ -146,13 +153,13 @@ function BibliotekContent() {
     if (likedDecks.has(key)) return;
     setLiking(key);
     try {
-      const result = await likeDeck({ deckname: deck.deckname, deckOwner: deck.owner });
+      const result = await likeDeck({ deckname: deck.deckname, deckOwner: deck.owner, user: bruger });
       if (result.success) {
         setLikedDecks((prev) => new Set(prev).add(key));
         setAlleKort((prev) =>
           prev.map((k) =>
             k.deckname === deck.deckname && k.user === deck.owner
-              ? { ...k, likes: k.likes + 1 }
+              ? { ...k, likes: result.alreadyLiked ? k.likes : k.likes + 1, likedBy: [...(k.likedBy || []), ...(result.alreadyLiked ? [] : [bruger])] }
               : k
           )
         );

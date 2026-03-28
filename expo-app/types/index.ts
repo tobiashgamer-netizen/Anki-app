@@ -9,6 +9,7 @@ export interface Flashcard {
   likes: number;
   deckname: string;
   verified?: boolean;
+  likedBy?: string[];
   error_report?: string | null;
 }
 

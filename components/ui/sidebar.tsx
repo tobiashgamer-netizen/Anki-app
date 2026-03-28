@@ -34,10 +34,10 @@ export function Sidebar() {
         {/* Logo */}
         <div>
           <div className="flex items-center gap-3 px-6 py-6 border-b border-white/10">
-            <div className="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
-              <span className="font-bold text-white text-lg">A</span>
+            <div className="bg-amber-500 p-2.5 rounded-xl shadow-lg shadow-amber-500/20">
+              <span className="text-2xl">🪣</span>
             </div>
-            <span className="text-xl font-bold tracking-tight text-white">Anki Pro</span>
+            <span className="text-xl font-bold tracking-tight text-white">Den Gule Spand</span>
           </div>
 
           {/* Nav */}

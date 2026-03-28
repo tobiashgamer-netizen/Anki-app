@@ -9,16 +9,22 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { clearProgress } from "../lib/srs";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { MoreStackParamList } from "../navigation/types";
 
 type Props = {
-  navigation: NativeStackNavigationProp<any>;
+  navigation: NativeStackNavigationProp<MoreStackParamList, "MoreMenu">;
 };
 
 const menuItems = [
   { label: "Opret kort", icon: PlusCircle, color: "#60a5fa", screen: "OpretKort" },
   { label: "Leaderboard", icon: Trophy, color: "#fbbf24", screen: "Leaderboard" },
   { label: "Giv forslag", icon: Lightbulb, color: "#34d399", screen: "Feedback" },
-];
+] as const satisfies ReadonlyArray<{
+  label: string;
+  icon: typeof PlusCircle;
+  color: string;
+  screen: Exclude<keyof MoreStackParamList, "MoreMenu">;
+}>;
 
 export default function MoreScreen({ navigation }: Props) {
   const { bruger, rolle, logout } = useAuth();
@@ -109,7 +115,7 @@ export default function MoreScreen({ navigation }: Props) {
         </TouchableOpacity>
 
         <View className="items-center mt-8 mb-6">
-          <Text className="text-gray-700 text-xs">Anki Pro v1.0.0</Text>
+          <Text className="text-gray-700 text-xs">Den Gule Spand v1.0.0</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
