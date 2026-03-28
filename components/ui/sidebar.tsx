@@ -3,23 +3,23 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/ui/auth-provider";
-import { Home, PlusCircle, BookOpen, Trophy, LogOut, User, Layers, Database, RotateCcw, ShieldCheck, X, Settings, Lightbulb } from "lucide-react";
+import { Home, PlusCircle, Trophy, LogOut, User, Layers, Database, RotateCcw, ShieldCheck, X, Lightbulb } from "lucide-react";
 
 const navItems = [
   { href: "/landing-page", label: "Hjem", icon: Home },
   { href: "/opret-kort", label: "Opret kort", icon: PlusCircle },
-  { href: "/oev-dig", label: "Ã˜v dig", icon: BookOpen },
   { href: "/mine-kort", label: "Mine kort", icon: Layers },
   { href: "/bibliotek", label: "Bibliotek", icon: Database },
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+  { href: "/profil", label: "Profil", icon: User },
   { href: "/feedback", label: "Giv Forslag", icon: Lightbulb },
 ];
 
 const mobileNavItems = [
   { href: "/landing-page", label: "Hjem", icon: Home },
-  { href: "/oev-dig", label: "Ã˜v dig", icon: BookOpen },
   { href: "/bibliotek", label: "Bibliotek", icon: Database },
   { href: "/mine-kort", label: "Mine kort", icon: Layers },
+  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
 ];
 
 export function Sidebar() {
@@ -168,6 +168,14 @@ export function Sidebar() {
 
             {/* Profile actions */}
             <div className="space-y-1">
+              <Link
+                href={"/profil"}
+                onClick={() => setProfileOpen(false)}
+                className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all"
+              >
+                <User className="w-5 h-5 text-blue-400" />
+                Min profil
+              </Link>
               <Link
                 href={"/opret-kort"}
                 onClick={() => setProfileOpen(false)}

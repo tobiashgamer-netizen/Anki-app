@@ -108,7 +108,7 @@ function DashboardContent() {
 
   const quickActions = [
     { label: "Opret nyt kort", description: "Tilføj et flashcard til din samling", href: "/opret-kort", icon: PlusCircle, color: "bg-blue-600 hover:bg-blue-700" },
-    { label: "Øv dig nu", description: "Start en øvesession med dine kort", href: "/oev-dig", icon: BookOpen, color: "bg-purple-600 hover:bg-purple-700" },
+    { label: "Åbn biblioteket", description: "Find et deck og start en øvesession", href: "/bibliotek", icon: Database, color: "bg-purple-600 hover:bg-purple-700" },
     { label: "Se leaderboard", description: "Hvem har lavet flest kort?", href: "/leaderboard", icon: Trophy, color: "bg-emerald-600 hover:bg-emerald-700" },
   ];
 

@@ -6,6 +6,7 @@ import { useAuth } from "@/components/ui/auth-provider";
 import {
   ShieldCheck, AlertTriangle, BadgeCheck, Image, Brain, Users,
   Megaphone, Loader2, Check, X, Save, Eye, Pencil, Lightbulb, Trash2,
+  LayoutDashboard, Database, Globe, FileCheck,
 } from "lucide-react";
 import { Suspense } from "react";
 import {
@@ -48,7 +49,7 @@ interface FeedbackItem {
   status: string;
 }
 
-type Tab = "fejl" | "verificer" | "billeder" | "blindspot" | "aktivitet" | "broadcast" | "forslag";
+type Tab = "dashboard" | "fejl" | "verificer" | "billeder" | "blindspot" | "aktivitet" | "broadcast" | "forslag";
 
 function AdminContent() {
   const router = useRouter();
@@ -63,7 +64,7 @@ function AdminContent() {
 
   const [alleKort, setAlleKort] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<Tab>("fejl");
+  const [tab, setTab] = useState<Tab>("dashboard");
 
   // Fejl-logg state
   const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
@@ -179,7 +180,12 @@ function AdminContent() {
 
   if (rolle !== "admin") return null;
 
+  const verifiedCount = alleKort.filter((k) => k.verified).length;
+  const publicCount = alleKort.filter((k) => k.public).length;
+  const unreadFeedback = feedback.filter((f) => f.status !== "læst").length;
+
   const tabs: { id: Tab; label: string; icon: typeof ShieldCheck; count?: number }[] = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "fejl", label: "Fejl-logg", icon: AlertTriangle, count: errorCards.length },
     { id: "verificer", label: "Verificering", icon: BadgeCheck },
     { id: "billeder", label: "Billeder", icon: Image, count: imageCards.length },
@@ -231,6 +237,31 @@ function AdminContent() {
             </div>
           ) : (
             <>
+              {/* ===== DASHBOARD ===== */}
+              {tab === "dashboard" && (
+                <div className="max-w-4xl">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                    {[
+                      { label: "Kort i alt", value: alleKort.length, icon: Database, color: "from-blue-500 to-blue-700" },
+                      { label: "Verificerede", value: verifiedCount, icon: FileCheck, color: "from-emerald-500 to-green-700" },
+                      { label: "Fejlrapporter", value: errorCards.length, icon: AlertTriangle, color: "from-red-500 to-rose-700" },
+                      { label: "Aktive brugere", value: activity.length, icon: Users, color: "from-purple-500 to-purple-700" },
+                      { label: "Blinde punkter", value: blindSpot.length, icon: Brain, color: "from-amber-500 to-orange-600" },
+                      { label: "Ul\u00e6ste forslag", value: unreadFeedback, icon: Lightbulb, color: "from-yellow-500 to-amber-600" },
+                      { label: "Med billeder", value: imageCards.length, icon: Image, color: "from-pink-500 to-rose-600" },
+                      { label: "Offentlige", value: publicCount, icon: Globe, color: "from-cyan-500 to-teal-600" },
+                    ].map((stat) => (
+                      <div key={stat.label} className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-5 backdrop-blur-sm shadow-lg shadow-black/10">
+                        <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${stat.color} opacity-10 rounded-bl-full`} />
+                        <stat.icon className="w-6 h-6 text-gray-400 mb-3" />
+                        <p className="text-2xl md:text-3xl font-bold">{stat.value}</p>
+                        <p className="text-sm text-gray-400 mt-1">{stat.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* ===== FEJL-LOGG ===== */}
               {tab === "fejl" && (
                 <div className="space-y-3 max-w-4xl">

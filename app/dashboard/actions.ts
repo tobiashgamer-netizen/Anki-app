@@ -316,3 +316,27 @@ export async function deleteFeedback(row: number) {
     return { success: false, error: "Netværksfejl" };
   }
 }
+
+export async function hentAvatar(username: string) {
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getAvatar&username=${encodeURIComponent(username)}`, { redirect: 'follow' });
+    const data = await res.json();
+    return { success: true, avatar: data.avatar || "" };
+  } catch {
+    return { success: false, avatar: "" };
+  }
+}
+
+export async function setAvatar(username: string, avatar: string) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'setAvatar', username, avatar }),
+      redirect: 'follow',
+    });
+    const result = await res.json();
+    return result;
+  } catch {
+    return { success: false, error: "Netværksfejl" };
+  }
+}
