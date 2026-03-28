@@ -19,6 +19,8 @@ function doGet(e) {
   if (action === "getActivity") return getActivity();
   if (action === "getBlindSpot") return getBlindSpot();
   if (action === "getFeedback") return getFeedback();
+  if (action === "getLeaderboard") return getLeaderboard();
+  if (action === "getAvatar") return getAvatar(e.parameter);
 
   return ContentService
     .createTextOutput(JSON.stringify({ status: "ok", message: "Scriptet er aktivt!" }))
@@ -44,6 +46,7 @@ function doPost(e) {
     if (action === "addFeedback") return addFeedback(data);
     if (action === "markFeedbackRead") return markFeedbackRead(data);
     if (action === "deleteFeedback") return deleteFeedback_(data);
+    if (action === "setAvatar") return setAvatar(data);
 
     // Default: addCard
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
@@ -653,5 +656,86 @@ function deleteFeedback_(data) {
   sheet.deleteRow(rowNum);
   return ContentService
     .createTextOutput(JSON.stringify({ success: true }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ===== LEADERBOARD =====
+// Counts total cards reviewed per user from Analytics sheet
+function getLeaderboard() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var anSheet = ss.getSheetByName("Analytics");
+  if (!anSheet || anSheet.getLastRow() < 2) {
+    return ContentService
+      .createTextOutput(JSON.stringify([]))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  var data = anSheet.getDataRange().getValues();
+  var userStats = {};
+  for (var i = 1; i < data.length; i++) {
+    var user = String(data[i][1] || "").trim();
+    var quality = Number(data[i][3]);
+    if (!user) continue;
+    if (!userStats[user]) userStats[user] = { total: 0, correct: 0 };
+    userStats[user].total++;
+    if (quality >= 1) userStats[user].correct++;
+  }
+  var result = [];
+  for (var u in userStats) {
+    result.push({
+      user: u,
+      total: userStats[u].total,
+      correct: userStats[u].correct,
+      score: userStats[u].correct * 10 + userStats[u].total * 2
+    });
+  }
+  result.sort(function(a, b) { return b.score - a.score; });
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ===== AVATAR =====
+// Brugere sheet: A=username, B=hashedPassword, C=role, D=createdAt, E=avatar
+function getAvatar(params) {
+  var username = params && params.username ? String(params.username).trim() : "";
+  if (!username) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ avatar: "" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  var sheet = getOrCreateUsersSheet();
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]).toLowerCase() === username.toLowerCase()) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ avatar: String(data[i][4] || "") }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  return ContentService
+    .createTextOutput(JSON.stringify({ avatar: "" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function setAvatar(data) {
+  var username = String(data.username || "").trim();
+  var avatar = String(data.avatar || "");
+  if (!username) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: "Missing username" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  var sheet = getOrCreateUsersSheet();
+  var allData = sheet.getDataRange().getValues();
+  for (var i = 1; i < allData.length; i++) {
+    if (String(allData[i][0]).toLowerCase() === username.toLowerCase()) {
+      sheet.getRange(i + 1, 5).setValue(avatar);
+      return ContentService
+        .createTextOutput(JSON.stringify({ success: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  return ContentService
+    .createTextOutput(JSON.stringify({ success: false, error: "User not found" }))
     .setMimeType(ContentService.MimeType.JSON);
 }
